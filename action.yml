@@ -1,0 +1,15 @@
+name: Release Manager Action
+description: GitHub Action to tag and release a new version of your project
+author: 'ragdata'
+inputs:
+    version:
+        description: "Release version"
+        required: false
+
+runs:
+    using: docker
+    image: Dockerfile
+
+branding:
+    icon: package
+    color: red
