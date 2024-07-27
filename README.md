@@ -20,7 +20,7 @@
 
 #### _Elapsed Project Time_
 
-[![wakatime](https://wakatime.com/badge/github/ragdata/release-manager-action.svg?style=for-the-badge)](https://wakatime.com/badge/github/ragdata/release-manager-action)
+[![wakatime](https://wakatime.com/badge/user/7e04d9d4-3a44-495e-b622-69fdbafd036c/project/28750979-b8ba-4fef-85c8-2d0a2aae6bf9.svg)](https://wakatime.com/badge/user/7e04d9d4-3a44-495e-b622-69fdbafd036c/project/28750979-b8ba-4fef-85c8-2d0a2aae6bf9)
 
 </div>
 
