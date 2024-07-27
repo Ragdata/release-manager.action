@@ -1,8 +1,9 @@
 FROM bash:alpine3.20
 
-# install git
-RUN apk -U upgrade && apk add git --no-cache
+# install essential utilities
+RUN apk -U upgrade && apk add --no-cache git yq-go
 
-COPY entrypoint.sh /entrypoint.sh
+COPY ./scripts 			/scripts
+COPY ./entrypoint.sh 	/entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
