@@ -25,6 +25,10 @@ source scripts/utils.sh
 ####################################################################
 trap 're::errorHandler "LINENO" "BASH_LINENO" "${BASH_COMMAND}" "${?}"' ERR
 
+#-------------------------------------------------------------------
+# Configuration
+#-------------------------------------------------------------------
+[[ ! -f "$GITHUB_WORKSPACE/.release.yml" ]] && { echo "::error::Configuration '.release.yml' File Not Found!"; exit 1; }
 
 #-------------------------------------------------------------------
 # Write Job Summary
