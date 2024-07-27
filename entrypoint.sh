@@ -18,12 +18,12 @@ shopt -s inherit_errexit
 
 IFS=$'\n\t'	# set unofficial strict mode @see: http://redsymbol.net/articles/unofficial-bash-strict-mode/
 
-#source scripts/utils.sh
+source scripts/utils.sh
 
 ####################################################################
 # MAIN
 ####################################################################
-#trap 're::errorHandler "LINENO" "BASH_LINENO" "${BASH_COMMAND}" "${?}"' ERR
+trap 're::errorHandler "LINENO" "BASH_LINENO" "${BASH_COMMAND}" "${?}"' ERR
 
 
 #-------------------------------------------------------------------
