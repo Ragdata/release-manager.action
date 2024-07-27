@@ -28,7 +28,7 @@ trap 're::errorHandler "LINENO" "BASH_LINENO" "${BASH_COMMAND}" "${?}"' ERR
 #-------------------------------------------------------------------
 # Configuration
 #-------------------------------------------------------------------
-[[ ! -f "$GITHUB_WORKSPACE/.release.yml" ]] && { echo "::error::Configuration '.release.yml' File Not Found!"; exit 1; }
+[[ ! -f "$GITHUB_WORKSPACE/.release.yml" ]] && { echo "::error::Configuration File '$GITHUB_WORKSPACE/.release.yml' Not Found!"; exit 1; }
 
 #-------------------------------------------------------------------
 # Write Job Summary
