@@ -24,3 +24,19 @@ source scripts/utils.sh
 # MAIN
 ####################################################################
 trap 're::errorHandler "LINENO" "BASH_LINENO" "${BASH_COMMAND}" "${?}"' ERR
+
+
+#-------------------------------------------------------------------
+# Write Job Summary
+#-------------------------------------------------------------------
+summaryTable="
+| Function	   | Result		  |
+| ------------ | :----------: |
+"
+
+cat << EOF >> "$GITHUB_STEP_SUMMARY"
+### :gift: Ragdata's Release Manager Action Summary
+$summaryTable
+EOF
+
+exit 0
