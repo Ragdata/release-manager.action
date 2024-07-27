@@ -8,6 +8,12 @@ inputs:
     type:
         description: "Bump Type (patch/minor/major)"
         required: false
+    branch:
+        description: "Branch to create release from"
+        required: false
+    pre-release:
+        description: "Mark as pre-release?"
+        required: false
 
 runs:
     using: docker
