@@ -18,7 +18,7 @@ shopt -s inherit_errexit
 
 IFS=$'\n\t'	# set unofficial strict mode @see: http://redsymbol.net/articles/unofficial-bash-strict-mode/
 
-source scripts/utils.sh
+source /usr/local/bin/scripts/utils.sh
 
 ####################################################################
 # MAIN
