@@ -3,9 +3,9 @@ FROM bash:alpine3.20
 # install essential utilities
 RUN apk -U upgrade && apk add --no-cache git yq-go
 
-COPY scripts /scripts
-COPY entrypoint.sh /entrypoint.sh
+COPY scripts /usr/local/bin/scripts
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 
-RUN chmod +x /entrypoint.sh && chmod -R +x /scripts
+RUN chmod +x /usr/local/bin/entrypoint.sh && chmod -R +x /usr/local/bin/scripts
 
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
