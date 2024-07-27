@@ -5,6 +5,9 @@ inputs:
     version:
         description: "Release version"
         required: false
+    type:
+        description: "Bump Type (patch/minor/major)"
+        required: false
 
 runs:
     using: docker
