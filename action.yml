@@ -6,7 +6,7 @@ inputs:
         description: "Release version"
         required: false
     type:
-        description: "Bump Type (version/patch/minor/major)"
+        description: "Bump Type (auto/patch/minor/major/first/version)"
         required: false
     branch:
         description: "Branch to create release from"
