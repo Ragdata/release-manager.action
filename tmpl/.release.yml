@@ -1,23 +1,32 @@
-name: {{ name }}
-version: {{ version }}
+name: {{ GITHUB_REPOSITORY }}
+# description:
+version: {{ CURRENT_VERSION }}
+prefix: v
+# copyright:
+# homepage:
 repository:
-    label: {{ repository.label }}
-    url: {{ repository.url }}
+    label: {{ GITHUB_REPOSITORY }}
+    url: https://github.com/{{ GITHUB_REPOSITORY }}
 authors:
-    - username: {{ github.actor }}
-      email: {{ github.actor.id }}+{{ github.actor }}@users.noreply.github.com
+    - username: {{ GITHUB_ACTOR }}
+      # first_name:
+      # surname:
+      email: {{ GITHUB_ACTOR_ID }}+{{ GITHUB_ACTOR }}@users.noreply.github.com
+      # affiliation:
 git:
     user:
-        name: {{ github.actor }}
-        email: {{ github.actor.id }}+{{ github.actor }}@users.noreply.github.com
+        name: {{ GITHUB_ACTOR }}
+        email: {{ GITHUB_ACTOR_ID }}+{{ GITHUB_ACTOR }}@users.noreply.github.com
     branches:
-        prod: {{ github.ref }}
+        prod: {{ GITHUB_REF_NAME }}
+        stage: dev
         patch: hotfix/.*
         release: release/.*
     message:
-        release: "build(release): release version {{ version }}"
+        release: "build(release): release version {{ RELEASE_VERSION }}"
 rules:
     protect_prod: true
+    changelog: true
 categories:
     types:
         - type: build
@@ -54,7 +63,7 @@ categories:
           icon: 📦
         - type: revert
           title: Reversions
-          description: Reverting to a previous commit
+          description: Reverting to a previous commit or code previously committed
           icon: 💫
         - type: style
           title: Styles
@@ -70,21 +79,41 @@ categories:
           title: Initial Commits
           description: The first files committed to the repository - usually generic
           icon: 🎉
-        - type: dependencies
-          link: fix
+        - type: config
+          link: feat
+          title: Configuration
+          description: Files which store configuration data for our software
+          icon: 💿
+        - type: deps
+          link: chore
           title: Dependencies
           description: Software libraries (often supplied by third-parties) upon which our software's functionality depends
           icon: ⏫
-        - type: devDependencies
+        - type: devDeps
           link: chore
           title: Dev Dependencies
           description: Software libraries upon which we depend in order to develop our software
           icon: 🔼
-        - type: metadata
+        - type: diags
           link: fix
+          title: Diagnostic Steps
+          description: Changes to code which contribute towards, but do not constitute, a bugfix
+          icon: 🔧
+        - type: ghpages
+          link: docs
+          title: GitHub Pages
+          description: Files which are a part of a GitHub Pages site for the repository
+          icon: ":globe_with_meridians:"
+        - type: metadata
+          link: feat
           title: Metadata
           description: Files which store information about our software
           icon: 📀
+        - type: wiki
+          link: docs
+          title: Wiki Content
+          description: Files which are a a part of a repository's Documentation Wiki
+          icon: 📑
     logged:
         - feat
         - fix
