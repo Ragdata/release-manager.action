@@ -1,7 +1,7 @@
 FROM bash:alpine3.20
 
 # install essential utilities
-RUN apk -U upgrade && apk add --no-cache git curl yq-go jq envsubst
+RUN apk -U upgrade && apk add --no-cache git curl yq-go envsubst
 
 COPY scripts /usr/local/bin/scripts
 COPY tmpl /usr/local/share/tmpl
