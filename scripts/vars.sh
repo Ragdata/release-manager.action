@@ -34,7 +34,8 @@ BIN_DIR="/usr/local/bin"
 SHARE_DIR="/usr/local/share"
 SCRIPT_DIR="$BIN_DIR/scripts"
 TMPL_DIR="$SHARE_DIR/tmpl"
+
 TMP_DIR="$(mktemp -d)"
 
-cfgFile="$(find "$GITHUB_WORKSPACE" -maxdepth 1 -type f -regextype posix-egrep -iregex ".+\.(release)(\.yml)?(\.yaml)?")"
+cfgFile="$GITHUB_WORKSPACE/.release.yml"
 cfgDefault="$TMPL_DIR/.release.yml"
