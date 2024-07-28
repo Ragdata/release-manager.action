@@ -1,6 +1,6 @@
 prefix: v
 git_user:
-    name: ${GITHUB_ACTOR}
+    name: release-manager[bot]
     email: ${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com
 branch:
     prod: ${GITHUB_REF_NAME}
