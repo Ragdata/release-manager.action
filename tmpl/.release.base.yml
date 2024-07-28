@@ -4,7 +4,7 @@ git_user:
     email: ${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com
 branch:
     prod: ${GITHUB_REF_NAME}
-    stage: dev
+    stage: develop
     patch: hotfix
     release: release
 message:
