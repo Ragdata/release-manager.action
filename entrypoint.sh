@@ -46,15 +46,18 @@ rm::getInputs
 echo "::endgroup::"
 
 echo "::group::🔧 Reading Release Manager Configuration"
-rm::getConfig
+rm::checkConfig
+rm::validateConfig "$cfgFile"
+rm::readConfig "$cfgFile"
 echo "::endgroup::"
 
 #-------------------------------------------------------------------
 # Write Job Summary
 #-------------------------------------------------------------------
 summaryTable="
-| Function	   | Result		  |
-| ------------ | :----------: |
+| Variable	   | Value		    |
+|:-------------|:--------------:|
+| LATEST_TAG   | ${LATEST_TAG}  |
 "
 
 cat << EOF >> "$GITHUB_STEP_SUMMARY"

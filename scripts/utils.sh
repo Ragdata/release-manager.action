@@ -17,7 +17,7 @@ rm::checkGit()
 	echo "Checking Git Readiness ..."
 }
 
-rm::getConfig()
+rm::checkConfig()
 {
 	# shellcheck disable=SC2154
 	if [[ -z "$cfgFile" ]]; then
@@ -30,8 +30,6 @@ rm::getConfig()
 		fi
 	fi
 
-	rm::validateConfig "$cfgFile"
-	rm::readConfig "$cfgFile"
 
 #	if [[ -z "$(git config --get user.email)" ]]; then
 #		[[ $(yq '.git.user | has("name")' "$cfgFile") ]] && USER_NAME=$(yq '.git.user.name' "$cfgFile") || USER_NAME="Release Manager"
@@ -54,12 +52,11 @@ rm::getCurrentVersion()
 
 	# Get number of tags returned
 	numTags="${#TAGS[@]}"
-	echo "numTags = $numTags"
 
 	if (( "$numTags" > 0 )); then
 		# Get the latest tag straight from the horse's mouth
-		LATEST_TAG="$(curl -qsSL -H "Accept: application/vnd.github+json" -H "Authorization: Bearer ${GITHUB_TOKEN}" -H "X-GitHub-Api-Version: 2022-11-28" "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/releases/latest" | jq -r .tag_name)"
-		echo "LATEST_TAG = ${LATEST_TAG}"
+		LATEST_TAG="$(curl -qsSL -H "Accept: application/vnd.github+json" -H "Authorization: Bearer ${GITHUB_TOKEN}" -H "X-GitHub-Api-Version: 2022-11-28" "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/releases/latest" | yq '.tag_name')"
+		echo "::debug::LATEST_TAG = ${LATEST_TAG}"
 
 		# Find the previous tag
 		if [[ "$LATEST_TAG" =~ ^v?[0-9]+\.*[0-9]*\.*[0-9]*\-?[0-9a-z\.\+]*$ ]]; then
@@ -78,6 +75,9 @@ rm::getCurrentVersion()
 			fi
 		fi
 	fi
+
+	echo "LATEST_TAG = ${LATEST_TAG}"
+	echo "PREV_TAG = ${PREV_TAG}"
 }
 
 rm::getInputs()
@@ -166,37 +166,45 @@ rm::readConfig()
 
 		envsubst < "$extFilePath" > "$tmpFilePath" || err::errorExit "Environment substitution failure"
 
-		echo "::debug::Parsing Base Configuration File '$extFilePath'"
+		echo "::debug::Parsing Base Configuration File '$tmpFilePath'"
 
-#		[[ $(yq 'has("prefix")' "$tmpFilePath") ]] && { PREFIX="$(yq '.prefix' "$tmpFilePath")"; echo "::debug::PREFIX = $PREFIX"; }
-#		if [[ $(yq 'has("git")' "$tmpFilePath") ]]; then
-#			if [[ $(yq '.git | has("user")' "$tmpFilePath") ]]; then
-#				[[ $(yq '.git.user | has("name")' "$tmpFilePath") ]] && { GIT_USER_NAME="$(yq '.git.user.name' "$tmpFilePath")"; echo "::debug::GIT_USER_NAME = $GIT_USER_NAME"; }
-#				[[ $(yq '.git.user | has("email")' "$tmpFilePath") ]] && { GIT_USER_EMAIL="$(yq '.git.user.email' "$tmpFilePath")"; echo "::debug::GIT_USER_EMAIL = $GIT_USER_EMAIL"; }
-#			fi
-#			if [[ $(yq '.git | has("branches")' "$tmpFilePath") ]]; then
-#				[[ $(yq '.git.branches | has("prod")' "$tmpFilePath") ]] && { BRANCH_PROD="$(yq '.git.branches.prod' "$tmpFilePath")"; echo "::debug::BRANCH_PROD = $BRANCH_PROD"; }
-#				[[ $(yq '.git.branches | has("stage")' "$tmpFilePath") ]] && { BRANCH_STAGE="$(yq '.git.branches.stage' "$tmpFilePath")"; echo "::debug::BRANCH_STAGE = $BRANCH_PROD"; }
-#				[[ $(yq '.git.branches | has("patch")' "$tmpFilePath") ]] && { BRANCH_PATCH="$(yq '.git.branches.patch' "$tmpFilePath")"; echo "::debug::BRANCH_PATCH = $BRANCH_PROD"; }
-#				[[ $(yq '.git.branches | has("release")' "$tmpFilePath") ]] && { BRANCH_RELEASE="$(yq '.git.branches.release' "$tmpFilePath")"; echo "::debug::BRANCH_RELEASE = $BRANCH_PROD"; }
-#			fi
-##			if [[ $(yq '.git | has("branches")' "$tmpFilePath") ]]; then
-##				[[ $(yq '' "$tmpFilePath") ]] && {}
-##			fi
-#		fi
-
-
-
-
-
-
+		[[ $(yq 'has("prefix")' "$tmpFilePath") ]] && { PREFIX="$(yq '.prefix' "$tmpFilePath")"; echo "::debug::PREFIX = $PREFIX"; }
+		if [[ $(yq 'has("git_user")' "$tmpFilePath") ]]; then
+			[[ $(yq '.git_user | has("name")' "$tmpFilePath") ]] && { GIT_USER_NAME="$(yq '.git_user.name' "$tmpFilePath")"; echo "::debug::GIT_USER_NAME = $GIT_USER_NAME"; }
+			[[ $(yq '.git_user | has("email")' "$tmpFilePath") ]] && { GIT_USER_EMAIL="$(yq '.git_user.email' "$tmpFilePath")"; echo "::debug::GIT_USER_EMAIL = $GIT_USER_EMAIL"; }
+		fi
+		if [[ $(yq 'has("branch")' "$tmpFilePath") ]]; then
+			[[ $(yq '.branch | has("prod")' "$tmpFilePath") ]] && { BRANCH_PROD="$(yq '.branch.prod' "$tmpFilePath")"; echo "::debug::BRANCH_PROD = $BRANCH_PROD"; }
+			[[ $(yq '.branch | has("stage")' "$tmpFilePath") ]] && { BRANCH_STAGE="$(yq '.branch.stage' "$tmpFilePath")"; echo "::debug::BRANCH_STAGE = $BRANCH_STAGE"; }
+			[[ $(yq '.branch | has("patch")' "$tmpFilePath") ]] && { BRANCH_PATCH="$(yq '.branch.patch' "$tmpFilePath")"; echo "::debug::BRANCH_PATCH = $BRANCH_PATCH"; }
+			[[ $(yq '.branch | has("release")' "$tmpFilePath") ]] && { BRANCH_RELEASE="$(yq '.branch.release' "$tmpFilePath")"; echo "::debug::BRANCH_RELEASE = $BRANCH_RELEASE"; }
+		fi
+		if [[ $(yq 'has("message")' "$tmpFilePath") ]]; then
+			[[ $(yq '.message | has("release")' "$tmpFilePath") ]] && { MESSAGE_RELEASE="$(yq '.message.release' "$tmpFilePath")"; echo "::debug::MESSAGE_RELEASE = $MESSAGE_RELEASE"; }
+		fi
+		if [[ $(yq 'has("types")' "$tmpFilePath") ]]; then
+			# shellcheck disable=SC2034
+			readarray TYPES < <(yq -o=j -I=0 '.types[]' "$tmpFilePath")
+#			for json in "${TYPES[@]}"; do
+#				type=$(echo "$json" | yq '.type' -)
+#			done
+		fi
+		if [[ $(yq 'has("aliases")' "$tmpFilePath") ]]; then
+			# shellcheck disable=SC2034
+			readarray TYPE_ALIASES < <(yq -o=j -I=0 '.aliases[]' "$tmpFilePath")
+		fi
+		if [[ $(yq 'has("logged")' "$tmpFilePath") ]]; then
+			# shellcheck disable=SC2034
+			readarray LOGGED_TYPES < <(yq '.logged[]' "$tmpFilePath")
+		fi
 	fi
 }
 
-#rm::writeConfig()
-#{
-#
-#}
+rm::writeConfig()
+{
+	local source="${1}"
+	local dest="${2}"
+}
 
 rm::validateConfig()
 {
