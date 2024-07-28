@@ -134,7 +134,7 @@ rm::getInputs()
 
 	[[ -z "$INPUT_BRANCH" ]] && INPUT_BRANCH="${GITHUB_REF_NAME}"
 
-	if [[ "$INPUT_PRE_RELEASE" ]]; then
+	if $INPUT_PRE_RELEASE; then
 		# Don't overwrite a suffix which was included with the release version input
 		[[ -z "$SUFFIX" ]] && SUFFIX="-alpha"
 	fi
