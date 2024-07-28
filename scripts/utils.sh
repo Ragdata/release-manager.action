@@ -54,12 +54,12 @@ rm::getCurrentVersion()
 
 	# Get number of tags returned
 	numTags="${#TAGS[@]}"
-	echo "::debug::numTags = $numTags"
+	echo "numTags = $numTags"
 
 	if (( "$numTags" > 0 )); then
 		# Get the latest tag straight from the horse's mouth
 		LATEST_TAG="$(curl -qsSL -H "Accept: application/vnd.github+json" -H "Authorization: Bearer ${GITHUB_TOKEN}" -H "X-GitHub-Api-Version: 2022-11-28" "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/releases/latest" | jq -r .tag_name)"
-		echo "::debug::LATEST_TAG = ${LATEST_TAG}"
+		echo "LATEST_TAG = ${LATEST_TAG}"
 
 		# Find the previous tag
 		if [[ "$LATEST_TAG" =~ ^v?[0-9]+\.*[0-9]*\.*[0-9]*\-?[0-9a-z\.\+]*$ ]]; then
@@ -110,25 +110,25 @@ rm::getInputs()
 		case "$INPUT_TYPE" in
 			first)
 				[[ -z "$INPUT_VERSION" ]] && INPUT_VERSION="1.0.0"
-				;;
+				break;;
 			version)
 				[[ -z "$INPUT_VERSION" ]] && err::errorExit "Bump Type = 'version', but no release version specified"
-				;;
+				break;;
 			update)
 				[[ -z "$INPUT_VERSION" ]] && err::errorExit "Bump Type = 'update', but no release version specified"
-				;;
+				break;;
 			patch)
 				# PLACEHOLDER
-				;;
+				break;;
 			minor)
 				# PLACEHOLDER
-				;;
+				break;;
 			major)
 				# PLACEHOLDER
-				;;
+				break;;
 			*)
 				INPUT_TYPE="auto"
-				;;
+				break;;
 		esac
 	done
 
