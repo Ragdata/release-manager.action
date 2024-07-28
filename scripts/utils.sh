@@ -75,10 +75,6 @@ rm::getCurrentVersion()
 			if [[ "${#TAGS[@]}" -gt 0 ]]; then
 				LATEST_TAG="${TAGS[0]}"
 				[[ -n "${TAGS[1]}" ]] && PREV_TAG="${TAGS[1]}"
-			else
-				LATEST_TAG=0
-				# shellcheck disable=SC2034
-				PREV_TAG=0
 			fi
 		fi
 	fi
@@ -86,6 +82,8 @@ rm::getCurrentVersion()
 
 rm::getInputs()
 {
+	declare -gx SUFFIX BUILD
+
 	if [[ -n "$INPUT_VERSION" ]]; then
 		# Remove the prefix, if it exists
 		[[ ! "${INPUT_VERSION:0:1}" =~ ^[0-9]$ ]] && INPUT_VERSION="${INPUT_VERSION:1}"
@@ -139,12 +137,12 @@ rm::getInputs()
 		[[ -z "$SUFFIX" ]] && SUFFIX="-alpha"
 	fi
 
-	echo "PREFIX = $PREFIX"
-	echo "INPUT_VERSION = $INPUT_VERSION"
-	echo "SUFFIX = $SUFFIX"
-	echo "BUILD = $BUILD"
-	echo "INPUT_TYPE = $INPUT_TYPE"
-	echo "INPUT_BRANCH = $INPUT_BRANCH"
+	echo "PREFIX = ${PREFIX}"
+	echo "INPUT_VERSION = ${INPUT_VERSION}"
+	echo "SUFFIX = ${SUFFIX}"
+	echo "BUILD = ${BUILD}"
+	echo "INPUT_TYPE = ${INPUT_TYPE}"
+	echo "INPUT_BRANCH = ${INPUT_BRANCH}"
 }
 
 rm::readConfig()
