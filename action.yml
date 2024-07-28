@@ -11,7 +11,7 @@ inputs:
     branch:
         description: "Branch to create release from"
         required: false
-    pre-release:
+    pre_release:
         description: "Mark as pre-release?"
         required: false
 
