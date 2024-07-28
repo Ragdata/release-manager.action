@@ -5,10 +5,11 @@ git_user:
 branch:
     prod: ${GITHUB_REF_NAME}
     stage: dev
-    patch: hotfix/.*
-    release: release/.*
+    patch: hotfix
+    release: release
 message:
-    release: "build(release): Release version "
+    commit: "chore(release): Auto commit"
+    release: "build(release): Release version"
 types:
     - type: build
       title: Builds
