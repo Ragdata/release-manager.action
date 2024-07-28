@@ -12,20 +12,18 @@
 # Copyright:    Copyright © 2024 Redeyed Technologies
 ####################################################################
 
-declare -Ax LOGGED_COMMITS
-declare -Ax FILTERED_COMMITS
-declare -Ax TYPES
-declare -Ax TYPE_ALIASES
+declare -Ax LOGGED_COMMITS FILTERED_COMMITS TYPES TYPE_ALIASES
 
-declare -ax COMMITS
-declare -ax LOGGED_TYPES
-declare -ax TAGS
+declare -ax COMMITS LOGGED_TYPES TAGS AUTHORS
 
+declare -x CURRENT_VERSION
 declare -x LATEST_TAG PREV_TAG
 declare -x PREFIX SUFFIX BUILD
 declare -x GIT_USER_NAME GIT_USER_EMAIL
 declare -x BRANCH_PROD BRANCH_STAGE BRANCH_PATCH BRANCH_RELEASE
 declare -x MESSAGE_COMMIT MESSAGE_RELEASE
+declare -x REPO_NAME REPO_DESC REPO_URL
+declare -x COPYRIGHT PROTECT_PROD CHANGELOG
 
 declare -x BIN_DIR SHARE_DIR SCRIPT_DIR TMPL_DIR TMP_DIR
 
