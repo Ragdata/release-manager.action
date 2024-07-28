@@ -82,11 +82,13 @@ rm::getCurrentVersion()
 
 rm::getInputs()
 {
-	declare -gx SUFFIX BUILD
+	PREFIX=""
+	SUFFIX=""
+	BUILD=""
 
 	if [[ -n "$INPUT_VERSION" ]]; then
 		# Remove the prefix, if it exists
-		[[ ! "${INPUT_VERSION:0:1}" =~ ^[0-9]$ ]] && INPUT_VERSION="${INPUT_VERSION:1}"
+		[[ "${INPUT_VERSION:0:1}" =~ ^[0-9]$ ]] || INPUT_VERSION="${INPUT_VERSION:1}"
 		# Validate the INPUT_VERSION format
 		[[ "$INPUT_VERSION" =~ ^[0-9]+\.*[0-9]*\.*[0-9]*\-?[0-9a-z\.\+]*$ ]] || err::errorExit "Invalid release version format"
 		# Look for build metadata in INPUT_VERSION
