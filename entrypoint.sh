@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2154
 # shellcheck disable=SC2317
 ####################################################################
 # entrypoint.sh
@@ -37,20 +38,15 @@ source /usr/local/bin/scripts/utils.sh || { echo "::error::Unable to load depend
 #-------------------------------------------------------------------
 # Configuration
 #-------------------------------------------------------------------
-echo "::group::⭐ Get Current Version Information from Git"
+echo "::group::🔧 Configuring Release Manager"
 rm::getCurrentVersion
+rm::checkConfig
+rm::readConfig "$cfgFile"
+rm::checkGit
 echo "::endgroup::"
 
 echo "::group::📝 Processing Input Variables"
 rm::getInputs
-echo "::endgroup::"
-
-echo "::group::🔧 Reading Release Manager Configuration"
-rm::checkConfig
-# shellcheck disable=SC2154
-rm::validateConfig "$cfgFile"
-rm::readConfig "$cfgFile"
-rm::checkGit
 echo "::endgroup::"
 
 #-------------------------------------------------------------------
