@@ -27,6 +27,7 @@ PROFILE["STARTTIME"]="$(date +%s.%N)"
 
 trap 'err::errorHandler "LINENO" "BASH_LINENO" "${BASH_COMMAND}" "${?}"' ERR
 
+git config --global --add safe.directory "$GITHUB_WORKSPACE"
 #-------------------------------------------------------------------
 # Dependencies
 #-------------------------------------------------------------------
