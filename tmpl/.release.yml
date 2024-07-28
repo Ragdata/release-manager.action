@@ -1,122 +1,18 @@
-name: {{ GITHUB_REPOSITORY }}
+extends: .release.base.yml
+name: ${GITHUB_REPOSITORY}
 # description:
-version: {{ CURRENT_VERSION }}
-prefix: v
+version: ${CURRENT_VERSION}
 # copyright:
 # homepage:
 repository:
-    label: {{ GITHUB_REPOSITORY }}
-    url: https://github.com/{{ GITHUB_REPOSITORY }}
+    label: ${GITHUB_REPOSITORY}
+    url: https://github.com/${GITHUB_REPOSITORY}
 authors:
-    - username: {{ GITHUB_ACTOR }}
+    - username: ${GITHUB_ACTOR}
       # first_name:
       # surname:
-      email: {{ GITHUB_ACTOR_ID }}+{{ GITHUB_ACTOR }}@users.noreply.github.com
+      email: ${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com
       # affiliation:
-git:
-    user:
-        name: {{ GITHUB_ACTOR }}
-        email: {{ GITHUB_ACTOR_ID }}+{{ GITHUB_ACTOR }}@users.noreply.github.com
-    branches:
-        prod: {{ GITHUB_REF_NAME }}
-        stage: dev
-        patch: hotfix/.*
-        release: release/.*
-    message:
-        release: "build(release): release version {{ RELEASE_VERSION }}"
 rules:
     protect_prod: true
     changelog: true
-categories:
-    types:
-        - type: build
-          title: Builds
-          description: Changes that affect the build system or external dependencies
-          icon: 🔨
-        - type: chore
-          title: Chores
-          description: Other changes that don't modify src or test files
-          icon: ♻️
-        - type: ci
-          title: Continuous Integration
-          description: Changes to our CI configuration files and scripts
-          icon: ⚙️
-        - type: docs
-          title: Documentation
-          description: Changes to documentation only
-          icon: 📘
-        - type: feat
-          title: Features
-          description: A new feature
-          icon: ✨
-        - type: fix
-          title: Bug Fixes
-          description: Changes which fix problems with the project
-          icon: 🐞
-        - type: perf
-          title: Performance Improvements
-          description: Code changes which improve performance
-          icon: 🚀
-        - type: refactor
-          title: Code Refactoring
-          description: A code change that neither fixes a bug nor adds a new feature
-          icon: 📦
-        - type: revert
-          title: Reversions
-          description: Reverting to a previous commit or code previously committed
-          icon: 💫
-        - type: style
-          title: Styles
-          description: Cosmetic changes which don't affect the meaning of the code
-          icon: 💎
-        - type: test
-          title: Tests
-          description: Changes to unit tests or other testing code
-          icon: 🚨
-    aliases:
-        - type: initial
-          link: feat
-          title: Initial Commits
-          description: The first files committed to the repository - usually generic
-          icon: 🎉
-        - type: config
-          link: feat
-          title: Configuration
-          description: Files which store configuration data for our software
-          icon: 💿
-        - type: deps
-          link: chore
-          title: Dependencies
-          description: Software libraries (often supplied by third-parties) upon which our software's functionality depends
-          icon: ⏫
-        - type: devDeps
-          link: chore
-          title: Dev Dependencies
-          description: Software libraries upon which we depend in order to develop our software
-          icon: 🔼
-        - type: diags
-          link: fix
-          title: Diagnostic Steps
-          description: Changes to code which contribute towards, but do not constitute, a bugfix
-          icon: 🔧
-        - type: ghpages
-          link: docs
-          title: GitHub Pages
-          description: Files which are a part of a GitHub Pages site for the repository
-          icon: ":globe_with_meridians:"
-        - type: metadata
-          link: feat
-          title: Metadata
-          description: Files which store information about our software
-          icon: 📀
-        - type: wiki
-          link: docs
-          title: Wiki Content
-          description: Files which are a a part of a repository's Documentation Wiki
-          icon: 📑
-    logged:
-        - feat
-        - fix
-        - perf
-        - style
-        - docs
