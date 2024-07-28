@@ -47,8 +47,10 @@ echo "::endgroup::"
 
 echo "::group::🔧 Reading Release Manager Configuration"
 rm::checkConfig
+# shellcheck disable=SC2154
 rm::validateConfig "$cfgFile"
 rm::readConfig "$cfgFile"
+rm::checkGit
 echo "::endgroup::"
 
 #-------------------------------------------------------------------

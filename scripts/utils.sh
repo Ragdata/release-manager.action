@@ -14,11 +14,35 @@
 ####################################################################
 rm::checkGit()
 {
+	local status
+
 	echo "Checking Git Readiness ..."
+
+	if [[ -z "$(git config --get user.email)" ]]; then
+		[[ -z "$GIT_USER_NAME" ]] && rm::errorExit "Git username not configured"
+		[[ -z "$GIT_USER_EMAIL" ]] && rm::errorExit "No email address configured"
+		git config --global user.name = "$GIT_USER_NAME"
+		git config --global user.email = "$GIT_USER_EMAIL"
+		echo "Git global user configuration set: $GIT_USER_NAME <$GIT_USER_EMAIL>"
+	fi
+
+	echo "Creating new release branch ..."
+
+	git checkout -b "$BRANCH_RELEASE"
+
+	echo "Checking for Untracked Files ..."
+
+	status="$(git status | grep "Untracked")"
+
+	if [[ -n "$status" ]]; then
+		git add . || rm::errorExit "Failed to add untracked files"
+		git commit -am "$MESSAGE_COMMIT" || rm::errorExit "Failed to commit untracked files"
+	fi
 }
 
 rm::checkConfig()
 {
+	echo "Checking Configuration Files ..."
 	# shellcheck disable=SC2154
 	if [[ -z "$cfgFile" ]]; then
 		if [[ -f "$cfgDefault" ]]; then
@@ -29,15 +53,6 @@ rm::checkConfig()
 			err::errorExit "Configuration Files Not Found!"
 		fi
 	fi
-
-
-#	if [[ -z "$(git config --get user.email)" ]]; then
-#		[[ $(yq '.git.user | has("name")' "$cfgFile") ]] && USER_NAME=$(yq '.git.user.name' "$cfgFile") || USER_NAME="Release Manager"
-#		[[ $(yq '.git.user | has("email")' "$cfgFile") ]] && USER_EMAIL=$(yq '.git.user.email' "$cfgFile") || USER_EMAIL="$GITHUB_ACTOR_ID+$GITHUB_ACTOR@users.noreply.github.com"
-#		git config --global user.name = "$USER_NAME"
-#		git config --global user.email = "$USER_EMAIL"
-#		echo "Git global user configuration set: $USER_NAME <$USER_EMAIL>"
-#	fi
 }
 
 rm::getCurrentVersion()
@@ -59,7 +74,7 @@ rm::getCurrentVersion()
 		echo "::debug::LATEST_TAG = ${LATEST_TAG}"
 
 		# Find the previous tag
-		if [[ "$LATEST_TAG" =~ ^v?[0-9]+\.*[0-9]*\.*[0-9]*\-?[0-9a-z\.\+]*$ ]]; then
+		if [[ "$LATEST_TAG" =~ ^[a-z\-\.]*[0-9]+\.*[0-9]*\.*[0-9]*\-?[0-9a-z\.\+]*$ ]]; then
 			i="$(arr::getIndex "${TAGS[@]}" "${LATEST_TAG}")"
 			[[ "${i}" == "x" ]] && err::errorExit "Latest Tag not found in git"
 			if [[ "${TAGS[$i]}" == "${LATEST_TAG}" ]]; then
@@ -74,6 +89,8 @@ rm::getCurrentVersion()
 				[[ -n "${TAGS[1]}" ]] && PREV_TAG="${TAGS[1]}"
 			fi
 		fi
+	else
+
 	fi
 
 	echo "LATEST_TAG = ${LATEST_TAG}"
@@ -180,6 +197,7 @@ rm::readConfig()
 			[[ $(yq '.branch | has("release")' "$tmpFilePath") ]] && { BRANCH_RELEASE="$(yq '.branch.release' "$tmpFilePath")"; echo "::debug::BRANCH_RELEASE = $BRANCH_RELEASE"; }
 		fi
 		if [[ $(yq 'has("message")' "$tmpFilePath") ]]; then
+			[[ $(yq '.message | has("commit")' "$tmpFilePath") ]] && { MESSAGE_COMMIT="$(yq '.message.commit' "$tmpFilePath")"; echo "::debug::MESSAGE_COMMIT = $MESSAGE_COMMIT"; }
 			[[ $(yq '.message | has("release")' "$tmpFilePath") ]] && { MESSAGE_RELEASE="$(yq '.message.release' "$tmpFilePath")"; echo "::debug::MESSAGE_RELEASE = $MESSAGE_RELEASE"; }
 		fi
 		if [[ $(yq 'has("types")' "$tmpFilePath") ]]; then
@@ -204,6 +222,8 @@ rm::writeConfig()
 {
 	local source="${1}"
 	local dest="${2}"
+
+	envsubst < "$source" > "$dest" || rm::errorExit "Failed to write config file"
 }
 
 rm::validateConfig()
