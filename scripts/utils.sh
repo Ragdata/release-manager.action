@@ -44,33 +44,42 @@ rm::getConfig()
 
 rm::getCurrentVersion()
 {
-	local gitTags
+	local gitTags numTags
 
 	gitTags="$(git tag -l --sort=version:refname)"
 
 	# Package tags as an array
 	# shellcheck disable=SC2206
 	TAGS=($gitTags)
-	# Get the latest tag straight from the horse's mouth
-	LATEST_TAG="$(curl -qsSL -H "Accept: application/vnd.github+json" -H "Authorization: Bearer ${GITHUB_TOKEN}" -H "X-GitHub-Api-Version: 2022-11-28" "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/releases/latest" | jq -r .tag_name)"
-	# Find the previous tag
-	if [[ -n "$LATEST_TAG" ]]; then
-		i="$(arr::getIndex "${TAGS[@]}" "${LATEST_TAG}")"
-		[[ "${i}" == "x" ]] && err::errorExit "Latest Tag not found in git"
-		if [[ "${TAGS[$i]}" == "${LATEST_TAG}" ]]; then
-			((i+=1))
-			PREV_TAG="${TAGS[$i]}"
+
+	# Get number of tags returned
+	numTags="${#TAGS[@]}"
+	echo "::debug::numTags = $numTags"
+
+	if (( "$numTags" > 0 )); then
+		# Get the latest tag straight from the horse's mouth
+		LATEST_TAG="$(curl -qsSL -H "Accept: application/vnd.github+json" -H "Authorization: Bearer ${GITHUB_TOKEN}" -H "X-GitHub-Api-Version: 2022-11-28" "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/releases/latest" | jq -r .tag_name)"
+		echo "::debug::LATEST_TAG = ${LATEST_TAG}"
+
+		# Find the previous tag
+		if [[ "$LATEST_TAG" =~ ^v?[0-9]+\.*[0-9]*\.*[0-9]*\-?[0-9a-z\.\+]*$ ]]; then
+			i="$(arr::getIndex "${TAGS[@]}" "${LATEST_TAG}")"
+			[[ "${i}" == "x" ]] && err::errorExit "Latest Tag not found in git"
+			if [[ "${TAGS[$i]}" == "${LATEST_TAG}" ]]; then
+				((i+=1))
+				PREV_TAG="${TAGS[$i]}"
+			else
+				err::errorExit "Tag mismatch: '${TAGS[$i]}' != '${LATEST_TAG}'"
+			fi
 		else
-			err::errorExit "Tag mismatch: '${TAGS[$i]}' != '${LATEST_TAG}'"
-		fi
-	else
-		if [[ "${#TAGS[@]}" -gt 0 ]]; then
-			LATEST_TAG="${TAGS[0]}"
-			[[ -n "${TAGS[1]}" ]] && PREV_TAG="${TAGS[1]}"
-		else
-			LATEST_TAG=0
-			# shellcheck disable=SC2034
-			PREV_TAG=0
+			if [[ "${#TAGS[@]}" -gt 0 ]]; then
+				LATEST_TAG="${TAGS[0]}"
+				[[ -n "${TAGS[1]}" ]] && PREV_TAG="${TAGS[1]}"
+			else
+				LATEST_TAG=0
+				# shellcheck disable=SC2034
+				PREV_TAG=0
+			fi
 		fi
 	fi
 }
