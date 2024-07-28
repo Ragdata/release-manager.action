@@ -3,16 +3,13 @@ name: ${GITHUB_REPOSITORY}
 # description:
 version: ${CURRENT_VERSION}
 # copyright:
-# homepage:
-repository:
-    label: ${GITHUB_REPOSITORY}
-    url: https://github.com/${GITHUB_REPOSITORY}
+# website:
+repo_url: https://github.com/${GITHUB_REPOSITORY}
 authors:
     - username: ${GITHUB_ACTOR}
       # first_name:
       # surname:
       email: ${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com
       # affiliation:
-rules:
-    protect_prod: true
-    changelog: true
+protect_prod: true
+changelog: true
