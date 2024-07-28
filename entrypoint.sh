@@ -30,8 +30,8 @@ trap 'err::errorHandler "LINENO" "BASH_LINENO" "${BASH_COMMAND}" "${?}"' ERR
 #-------------------------------------------------------------------
 # Dependencies
 #-------------------------------------------------------------------
-source "$SCRIPT_DIR"/vars.sh || { echo "::error::Unable to load dependency '$SCRIPT_DIR/vars.sh'"; exit 1; }
-source "$SCRIPT_DIR"/utils.sh || { echo "::error::Unable to load dependency '$SCRIPT_DIR/utils.sh'"; exit 1; }
+source /usr/local/bin/scripts/vars.sh || { echo "::error::Unable to load dependency '/usr/local/bin/scripts/vars.sh'"; exit 1; }
+source /usr/local/bin/scripts/utils.sh || { echo "::error::Unable to load dependency '/usr/local/bin/scripts/utils.sh'"; exit 1; }
 
 #-------------------------------------------------------------------
 # Configuration
