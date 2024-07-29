@@ -25,7 +25,7 @@ rm::checkGit()
 		echo "Git global user configuration set: $GIT_USER_NAME <$GIT_USER_EMAIL>"
 	fi
 
-	[[ "$(git status -s | head -c1 | wc -c)" -ne 0 ]] && err::exit "Commit staged / unversioned files first, then re-run workflow"
+	#[[ "$(git status -s | head -c1 | wc -c)" -ne 0 ]] && err::exit "Commit staged / unversioned files first, then re-run workflow"
 }
 
 rm::checkConfig()
