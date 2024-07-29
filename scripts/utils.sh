@@ -40,7 +40,7 @@ rm::checkGit()
 
 rm::checkConfig()
 {
-	echo "Checking Configuration Files ..."
+	echo "Checking configuration files ..."
 	# shellcheck disable=SC2154
 	if [[ ! -f "$cfgFile" ]]; then
 		echo "Release Manager configuration file not present"
@@ -52,13 +52,13 @@ rm::checkConfig()
 			err::exit "Default configuration file not found"
 		fi
 	else
-		echo "Release Manager configuration file present"
+		echo "Release Manager configuration file '$cfgFile' present"
 	fi
 }
 
 rm::getCurrentVersion()
 {
-	echo "Checking Configuration File .."
+	echo "Querying configuration file for current version ..."
 
 	if [[ -f "$cfgFile" ]]; then
 		if [[ $(yq 'has("version")' "$cfgFile") ]]; then
@@ -72,6 +72,8 @@ rm::getCurrentVersion()
 		# shellcheck disable=SC2034
 		CURRENT_VERSION="0.1.0"
 	fi
+
+	echo "::debug::CURRENT_VERSION = $CURRENT_VERSION"
 }
 
 rm::getInputs()
@@ -198,7 +200,7 @@ rm::readConfig()
 
 		[[ -f "$extFilePath" ]] || err::exit "Base configuration file '$extFilePath' not found"
 
-		echo "Base configuration file '$extFilePath' found"
+		echo "Configuration file extends base config '$extFilePath'"
 
 		rm::validateConfig "$extFilePath"
 
