@@ -42,7 +42,7 @@ echo "::group::📑 Configuring Release Manager"
 rm::getCurrentVersion
 rm::checkConfig
 rm::readConfig "$cfgFile"
-rm::checkGit
+#rm::checkGit
 echo "::endgroup::"
 
 echo "::group::📝 Processing Input Variables"
