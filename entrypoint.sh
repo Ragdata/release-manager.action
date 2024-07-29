@@ -38,7 +38,7 @@ source /usr/local/bin/scripts/utils.sh || { echo "::error::Unable to load depend
 #-------------------------------------------------------------------
 # Configuration
 #-------------------------------------------------------------------
-echo "::group::🔧 Configuring Release Manager"
+echo "::group::📑 Configuring Release Manager"
 rm::getCurrentVersion
 rm::checkConfig
 rm::readConfig "$cfgFile"
