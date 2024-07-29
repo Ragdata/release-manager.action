@@ -62,7 +62,7 @@ rm::getCurrentVersion()
 	echo "Querying configuration file for current version ..."
 
 	if [[ -f "$cfgFile" ]]; then
-		if yq 'has("version")' "$cfgFile"; then
+		if $(yq 'has("version")' "$cfgFile"); then
 			echo "Current version obtained from configuration file"
 			CURRENT_VERSION="$(yq '.version' "$cfgFile")"
 		else
@@ -207,47 +207,20 @@ rm::readConfig()
 
 		envsubst < "$extFilePath" > "$tmpFilePath" || err::exit "Environment substitution failure"
 
-		if $(yq 'has("prefix")' "$tmpFilePath"); then
-			PREFIX="$(yq '.prefix' "$tmpFilePath")"
-			echo "::debug::PREFIX = $PREFIX"
-		fi
+		$(yq 'has("prefix")' "$tmpFilePath") && { PREFIX="$(yq '.prefix' "$tmpFilePath")"; echo "::debug::PREFIX = $PREFIX"; }
 		if $(yq 'has("git_user")' "$tmpFilePath"); then
-			if $(yq '.git_user | has("name")' "$tmpFilePath"); then
-				GIT_USER_NAME="$(yq '.git_user.name' "$tmpFilePath")"
-				echo "::debug::GIT_USER_NAME = $GIT_USER_NAME"
-			fi
-			if $(yq '.git_user | has("email")' "$tmpFilePath"); then
-				GIT_USER_EMAIL="$(yq '.git_user.email' "$tmpFilePath")"
-				echo "::debug::GIT_USER_EMAIL = $GIT_USER_EMAIL"
-			fi
+			$(yq '.git_user | has("name")' "$tmpFilePath") && { GIT_USER_NAME="$(yq '.git_user.name' "$tmpFilePath")"; echo "::debug::GIT_USER_NAME = $GIT_USER_NAME"; }
+			$(yq '.git_user | has("email")' "$tmpFilePath") && { GIT_USER_EMAIL="$(yq '.git_user.email' "$tmpFilePath")"; echo "::debug::GIT_USER_EMAIL = $GIT_USER_EMAIL"; }
 		fi
 		if $(yq 'has("branch")' "$tmpFilePath"); then
-			if $(yq '.branch | has("prod")' "$tmpFilePath"); then
-				BRANCH_PROD="$(yq '.branch.prod' "$tmpFilePath")"
-				echo "::debug::BRANCH_PROD = $BRANCH_PROD"
-			fi
-			if $(yq '.branch | has("stage")' "$tmpFilePath"); then
-				BRANCH_STAGE="$(yq '.branch.stage' "$tmpFilePath")"
-				echo "::debug::BRANCH_STAGE = $BRANCH_STAGE"
-			fi
-			if $(yq '.branch | has("patch")' "$tmpFilePath"); then
-				BRANCH_PATCH="$(yq '.branch.patch' "$tmpFilePath")"
-				echo "::debug::BRANCH_PATCH = $BRANCH_PATCH"
-			fi
-			if $(yq '.branch | has("release")' "$tmpFilePath"); then
-				BRANCH_RELEASE="$(yq '.branch.release' "$tmpFilePath")"
-				echo "::debug::BRANCH_RELEASE = $BRANCH_RELEASE"
-			fi
+			$(yq '.branch | has("prod")' "$tmpFilePath") && { BRANCH_PROD="$(yq '.branch.prod' "$tmpFilePath")"; echo "::debug::BRANCH_PROD = $BRANCH_PROD"; }
+			$(yq '.branch | has("stage")' "$tmpFilePath") && { BRANCH_STAGE="$(yq '.branch.stage' "$tmpFilePath")"; echo "::debug::BRANCH_STAGE = $BRANCH_STAGE"; }
+			$(yq '.branch | has("patch")' "$tmpFilePath") && { BRANCH_PATCH="$(yq '.branch.patch' "$tmpFilePath")"; echo "::debug::BRANCH_PATCH = $BRANCH_PATCH"; }
+			$(yq '.branch | has("release")' "$tmpFilePath") && { BRANCH_RELEASE="$(yq '.branch.release' "$tmpFilePath")"; echo "::debug::BRANCH_RELEASE = $BRANCH_RELEASE"; }
 		fi
 		if $(yq 'has("message")' "$tmpFilePath"); then
-			if $(yq '.message | has("commit")' "$tmpFilePath"); then
-				MESSAGE_COMMIT="$(yq '.message.commit' "$tmpFilePath")"
-				echo "::debug::MESSAGE_COMMIT = $MESSAGE_COMMIT"
-			fi
-			if $(yq '.message | has("release")' "$tmpFilePath"); then
-				MESSAGE_RELEASE="$(yq '.message.release' "$tmpFilePath")"
-				echo "::debug::MESSAGE_RELEASE = $MESSAGE_RELEASE"
-			fi
+			$(yq '.message | has("commit")' "$tmpFilePath") && { MESSAGE_COMMIT="$(yq '.message.commit' "$tmpFilePath")"; echo "::debug::MESSAGE_COMMIT = $MESSAGE_COMMIT"; }
+			$(yq '.message | has("release")' "$tmpFilePath") && { MESSAGE_RELEASE="$(yq '.message.release' "$tmpFilePath")"; echo "::debug::MESSAGE_RELEASE = $MESSAGE_RELEASE"; }
 		fi
 		if $(yq 'has("types")' "$tmpFilePath"); then
 			# shellcheck disable=SC2034
@@ -269,71 +242,29 @@ rm::readConfig()
 
 	rm::validateConfig "$filePath"
 
-	if $(yq 'has("prefix")' "$filePath"); then
-		PREFIX="$(yq '.prefix' "$filePath")"
-		echo "::debug::PREFIX = $PREFIX"
-	fi
-	if $(yq 'has("name")' "$filePath"); then
-		REPO_NAME="$(yq '.name' "$filePath")"
-		echo "::debug::REPO_NAME = $REPO_NAME"
-	fi
-	if $(yq 'has("description")' "$filePath"); then
-		REPO_DESC="$(yq '.description' "$filePath")"
-		echo "::debug::REPO_DESC = $REPO_DESC"
-	fi
-	if $(yq 'has("repo_url")' "$filePath"); then
-		REPO_URL="$(yq '.repo_url' "$filePath")"
-		echo "::debug::REPO_URL = $REPO_URL"
-	fi
-	if $(yq 'has("copyright")' "$filePath"); then
-		COPYRIGHT="$(yq '.copyright' "$filePath")"
-		echo "::debug::COPYRIGHT = $COPYRIGHT"
-	fi
-	if $(yq 'has("website")' "$filePath"); then
-		WEBSITE="$(yq '.website' "$filePath")"
-		echo "::debug::WEBSITE = $WEBSITE"
-	fi
+	$(yq 'has("prefix")' "$filePath") && { PREFIX="$(yq '.prefix' "$filePath")"; echo "::debug::PREFIX = $PREFIX"; }
+	$(yq 'has("name")' "$filePath") && { REPO_NAME="$(yq '.name' "$filePath")"; echo "::debug::REPO_NAME = $REPO_NAME"; }
+	$(yq 'has("description")' "$filePath") && { REPO_DESC="$(yq '.description' "$filePath")"; echo "::debug::REPO_DESC = $REPO_DESC"; }
+	$(yq 'has("repo_url")' "$filePath") && { REPO_URL="$(yq '.repo_url' "$filePath")"; echo "::debug::REPO_URL = $REPO_URL"; }
+	$(yq 'has("copyright")' "$filePath") && { COPYRIGHT="$(yq '.copyright' "$filePath")"; echo "::debug::COPYRIGHT = $COPYRIGHT"; }
+	$(yq 'has("website")' "$filePath") && { WEBSITE="$(yq '.website' "$filePath")"; echo "::debug::WEBSITE = $WEBSITE"; }
 	if $(yq 'has("git_user")' "$filePath"); then
-		if $(yq '.git_user | has("name")' "$filePath"); then
-			GIT_USER_NAME="$(yq '.git_user.name' "$filePath")"
-			echo "::debug::GIT_USER_NAME = $GIT_USER_NAME"
-		fi
-		if $(yq '.git_user | has("email")' "$filePath"); then
-			GIT_USER_EMAIL="$(yq '.git_user.email' "$filePath")"
-			echo "::debug::GIT_USER_EMAIL = $GIT_USER_EMAIL"
-		fi
+		$(yq '.git_user | has("name")' "$filePath") && { GIT_USER_NAME="$(yq '.git_user.name' "$filePath")"; echo "::debug::GIT_USER_NAME = $GIT_USER_NAME"; }
+		$(yq '.git_user | has("email")' "$filePath") && { GIT_USER_EMAIL="$(yq '.git_user.email' "$filePath")"; echo "::debug::GIT_USER_EMAIL = $GIT_USER_EMAIL"; }
 	fi
 	if $(yq 'has("authors")' "$filePath"); then
 		# shellcheck disable=SC2034
 		readarray AUTHORS < <(yq -o=j -I=0 '.authors[]' "$filePath")
 	fi
 	if $(yq 'has("branch")' "$filePath"); then
-		if $(yq '.branch | has("prod")' "$filePath"); then
-			BRANCH_PROD="$(yq '.branch.prod' "$filePath")"
-			echo "::debug::BRANCH_PROD = $BRANCH_PROD"
-		fi
-		if $(yq '.branch | has("stage")' "$filePath"); then
-			BRANCH_STAGE="$(yq '.branch.stage' "$filePath")"
-			echo "::debug::BRANCH_STAGE = $BRANCH_STAGE"
-		fi
-		if $(yq '.branch | has("patch")' "$filePath"); then
-			BRANCH_PATCH="$(yq '.branch.patch' "$filePath")"
-			echo "::debug::BRANCH_PATCH = $BRANCH_PATCH"
-		fi
-		if $(yq '.branch | has("release")' "$filePath"); then
-			BRANCH_RELEASE="$(yq '.branch.release' "$filePath")"
-			echo "::debug::BRANCH_RELEASE = $BRANCH_RELEASE"
-		fi
+		$(yq '.branch | has("prod")' "$filePath") && { BRANCH_PROD="$(yq '.branch.prod' "$filePath")"; echo "::debug::BRANCH_PROD = $BRANCH_PROD"; }
+		$(yq '.branch | has("stage")' "$filePath") && { BRANCH_STAGE="$(yq '.branch.stage' "$filePath")"; echo "::debug::BRANCH_STAGE = $BRANCH_STAGE"; }
+		$(yq '.branch | has("patch")' "$filePath") && { BRANCH_PATCH="$(yq '.branch.patch' "$filePath")"; echo "::debug::BRANCH_PATCH = $BRANCH_PATCH"; }
+		$(yq '.branch | has("release")' "$filePath") && { BRANCH_RELEASE="$(yq '.branch.release' "$filePath")"; echo "::debug::BRANCH_RELEASE = $BRANCH_RELEASE"; }
 	fi
 	if $(yq 'has("message")' "$filePath"); then
-		if $(yq '.message | has("commit")' "$filePath"); then
-			MESSAGE_COMMIT="$(yq '.message.commit' "$filePath")"
-			echo "::debug::MESSAGE_COMMIT = $MESSAGE_COMMIT"
-		fi
-		if $(yq '.message | has("release")' "$filePath"); then
-			MESSAGE_RELEASE="$(yq '.message.release' "$filePath")"
-			echo "::debug::MESSAGE_RELEASE = $MESSAGE_RELEASE"
-		fi
+		$(yq '.message | has("commit")' "$filePath") && { MESSAGE_COMMIT="$(yq '.message.commit' "$filePath")"; echo "::debug::MESSAGE_COMMIT = $MESSAGE_COMMIT"; }
+		$(yq '.message | has("release")' "$filePath") && { MESSAGE_RELEASE="$(yq '.message.release' "$filePath")"; echo "::debug::MESSAGE_RELEASE = $MESSAGE_RELEASE"; }
 	fi
 	if $(yq 'has("types")' "$filePath"); then
 		# shellcheck disable=SC2034
@@ -347,14 +278,8 @@ rm::readConfig()
 		# shellcheck disable=SC2034
 		readarray LOGGED_TYPES < <(yq '.logged[]' "$filePath")
 	fi
-	if $(yq 'has("protect_prod")' "$filePath"); then
-		PROTECT_PROD="$(yq '.protect_prod' "$filePath")"
-		echo "::debug::PROTECT_PROD = $PROTECT_PROD"
-	fi
-	if $(yq 'has("changelog")' "$filePath"); then
-		CHANGELOG="$(yq '.changelog' "$filePath")"
-		 echo "::debug::CHANGELOG = $CHANGELOG"
-	 fi
+	$(yq 'has("protect_prod")' "$filePath") && { PROTECT_PROD="$(yq '.protect_prod' "$filePath")"; echo "::debug::PROTECT_PROD = $PROTECT_PROD"; }
+	$(yq 'has("changelog")' "$filePath") && { CHANGELOG="$(yq '.changelog' "$filePath")"; echo "::debug::CHANGELOG = $CHANGELOG"; }
 
 	echo "Release Manager configuration file processed"
 }
@@ -371,7 +296,7 @@ rm::validateConfig()
 {
 	[[ -z "${1}" ]] && err::exit "No Configuration Filepath Passed!"
 	[[ -f "${1}" ]] || err::exit "Configuration Filepath '${1}' Not Found!"
-	yq --exit-status 'tag == "!!map" or tag == "!!seq"' "${1}" || err::exit "Invalid Configuration File '${1}'"
+	$(yq --exit-status 'tag == "!!map" or tag == "!!seq"' "${1}") || err::exit "Invalid Configuration File '${1}'"
 	echo "::debug::Configuration File '${1}' Validated"
 }
 
