@@ -26,17 +26,6 @@ rm::checkGit()
 	fi
 
 	[[ "$(git status -s | head -c1 | wc -c)" -ne 0 ]] && err::exit "Commit staged files first, then re-run workflow"
-
-#	echo "Creating new release branch ..."
-#
-#	git checkout -b "$BRANCH_RELEASE"
-#
-#	echo "Checking for Untracked Files ..."
-#
-#	if [[ -n $(git status . -s) ]]; then
-#		git add . || err::exit "Failed to add untracked files"
-#		git commit -am "$MESSAGE_COMMIT" || err::exit "Failed to commit untracked files"
-#	fi
 }
 
 rm::checkConfig()

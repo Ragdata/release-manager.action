@@ -42,7 +42,7 @@ echo "::group::📑 Configuring Release Manager"
 rm::getCurrentVersion
 rm::checkConfig
 rm::readConfig "$cfgFile"
-#rm::checkGit
+rm::checkGit
 echo "::endgroup::"
 
 echo "::group::📝 Processing Input Variables"
@@ -55,7 +55,6 @@ echo "::endgroup::"
 summaryTable="
 | Variable	   | Value		    |
 |:-------------|:--------------:|
-| LATEST_TAG   | ${LATEST_TAG}  |
 "
 
 cat << EOF >> "$GITHUB_STEP_SUMMARY"
