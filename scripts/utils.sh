@@ -18,14 +18,14 @@ rm::checkGit()
 	echo "Checking Git Config ..."
 
 	if ! git config --get user.email; then
-		[[ -z "$GIT_USER_NAME" ]] && err::exit "Git username not configured"
-		[[ -z "$GIT_USER_EMAIL" ]] && err::exit "No email address configured"
+		[[ -z "$GIT_USER_NAME" ]] && errExit "Git username not configured"
+		[[ -z "$GIT_USER_EMAIL" ]] && errExit "No email address configured"
 		git config --global user.name = "$GIT_USER_NAME"
 		git config --global user.email = "$GIT_USER_EMAIL"
 		echo "Git global user configuration set: $GIT_USER_NAME <$GIT_USER_EMAIL>"
 	fi
 
-	[[ $(git status . -s | wc -c) -ne 0 ]] && err::exit "Commit staged files first, then re-run workflow"
+	[[ $(git status . -s | head -c1 | wc -c) -ne 0 ]] && errExit "Commit staged files first, then re-run workflow"
 
 #	echo "Creating new release branch ..."
 #
@@ -34,8 +34,8 @@ rm::checkGit()
 #	echo "Checking for Untracked Files ..."
 #
 #	if [[ -n $(git status . -s) ]]; then
-#		git add . || err::exit "Failed to add untracked files"
-#		git commit -am "$MESSAGE_COMMIT" || err::exit "Failed to commit untracked files"
+#		git add . || errExit "Failed to add untracked files"
+#		git commit -am "$MESSAGE_COMMIT" || errExit "Failed to commit untracked files"
 #	fi
 }
 
@@ -48,9 +48,9 @@ rm::checkConfig()
 		if [[ -f "$cfgDefault" ]]; then
 			cfgFile="$TMP_DIR/.release.yml"
 			echo "Creating temporary config file"
-			envsubst < "$cfgDefault" > "$cfgFile" || err::exit "Failed to write temporary config file"
+			envsubst < "$cfgDefault" > "$cfgFile" || errExit "Failed to write temporary config file"
 		else
-			err::exit "Default configuration file not found"
+			errExit "Default configuration file not found"
 		fi
 	else
 		echo "Release Manager configuration file '$cfgFile' present"
@@ -66,7 +66,7 @@ rm::getCurrentVersion()
 			echo "Current version obtained from configuration file"
 			CURRENT_VERSION="$(yq '.version' "$cfgFile")"
 		else
-			err::exit "No current version in configuration file"
+			errExit "No current version in configuration file"
 		fi
 	else
 		echo "No Configuration File - assigning default first version"
@@ -87,7 +87,7 @@ rm::getInputs()
 		# Remove the prefix, if it exists
 		[[ "${INPUT_VERSION:0:1}" =~ ^[0-9]$ ]] || INPUT_VERSION="${INPUT_VERSION:1}"
 		# Validate the INPUT_VERSION format
-		[[ "$INPUT_VERSION" =~ ^[0-9]+\.*[0-9]*\.*[0-9]*\-?[0-9a-z\.\+]*$ ]] || err::exit "Invalid release version format"
+		[[ "$INPUT_VERSION" =~ ^[0-9]+\.*[0-9]*\.*[0-9]*\-?[0-9a-z\.\+]*$ ]] || errExit "Invalid release version format"
 		# Look for build metadata in INPUT_VERSION
 		if [[ "$INPUT_VERSION" == *"+"* ]]; then
 			# shellcheck disable=SC2034
@@ -109,10 +109,10 @@ rm::getInputs()
 				[[ -z "$INPUT_VERSION" ]] && INPUT_VERSION="1.0.0"
 				break;;
 			version)
-				[[ -z "$INPUT_VERSION" ]] && err::exit "Bump Type = 'version', but no release version specified"
+				[[ -z "$INPUT_VERSION" ]] && errExit "Bump Type = 'version', but no release version specified"
 				break;;
 			update)
-				[[ -z "$INPUT_VERSION" ]] && err::exit "Bump Type = 'update', but no release version specified"
+				[[ -z "$INPUT_VERSION" ]] && errExit "Bump Type = 'update', but no release version specified"
 				break;;
 			patch)
 				# PLACEHOLDER
@@ -165,12 +165,12 @@ rm::getLatestTags()
 		# Find the previous tag
 		if [[ "$LATEST_TAG" =~ ^[a-z\-\.]*[0-9]+\.*[0-9]*\.*[0-9]*\-?[0-9a-z\.\+]*$ ]]; then
 			i="$(arr::getIndex "${TAGS[@]}" "${LATEST_TAG}")"
-			[[ "${i}" == "x" ]] && err::exit "Latest Tag not found in git"
+			[[ "${i}" == "x" ]] && errExit "Latest Tag not found in git"
 			if [[ "${TAGS[$i]}" == "${LATEST_TAG}" ]]; then
 				((i+=1))
 				PREV_TAG="${TAGS[$i]}"
 			else
-				err::exit "Tag mismatch: '${TAGS[$i]}' != '${LATEST_TAG}'"
+				errExit "Tag mismatch: '${TAGS[$i]}' != '${LATEST_TAG}'"
 			fi
 		else
 			if [[ "${#TAGS[@]}" -gt 0 ]]; then
@@ -189,7 +189,7 @@ rm::readConfig()
 	local filePath="${1:-}"
 	local extends extFilePath tmpFilePath
 
-	[[ -f "$filePath" ]] || err::exit "Configuration file '$filePath' not found"
+	[[ -f "$filePath" ]] || errExit "Configuration file '$filePath' not found"
 
 	echo "Parsing Configuration Files ..."
 
@@ -199,13 +199,13 @@ rm::readConfig()
 		extFilePath="$TMPL_DIR/$extends"
 		tmpFilePath="$TMP_DIR/$extends"
 
-		[[ -f "$extFilePath" ]] || err::exit "Base configuration file '$extFilePath' not found"
+		[[ -f "$extFilePath" ]] || errExit "Base configuration file '$extFilePath' not found"
 
 		echo "Configuration file extends base config '$extFilePath'"
 
 		rm::validateConfig "$extFilePath"
 
-		envsubst < "$extFilePath" > "$tmpFilePath" || err::exit "Environment substitution failure"
+		envsubst < "$extFilePath" > "$tmpFilePath" || errExit "Environment substitution failure"
 
 		$(yq 'has("prefix")' "$tmpFilePath") && { PREFIX="$(yq '.prefix' "$tmpFilePath")"; echo "::debug::PREFIX = $PREFIX"; }
 		if $(yq 'has("git_user")' "$tmpFilePath"); then
@@ -289,14 +289,14 @@ rm::writeConfig()
 	local source="${1}"
 	local dest="${2}"
 
-	envsubst < "$source" > "$dest" || err::exit "Failed to write config file"
+	envsubst < "$source" > "$dest" || errExit "Failed to write config file"
 }
 
 rm::validateConfig()
 {
-	[[ -z "${1}" ]] && err::exit "No Configuration Filepath Passed!"
-	[[ -f "${1}" ]] || err::exit "Configuration Filepath '${1}' Not Found!"
-	$(yq --exit-status 'tag == "!!map" or tag == "!!seq"' "${1}") || err::exit "Invalid Configuration File '${1}'"
+	[[ -z "${1}" ]] && errExit "No Configuration Filepath Passed!"
+	[[ -f "${1}" ]] || errExit "Configuration Filepath '${1}' Not Found!"
+	$(yq --exit-status 'tag == "!!map" or tag == "!!seq"' "${1}") || errExit "Invalid Configuration File '${1}'"
 	echo "::debug::Configuration File '${1}' Validated"
 }
 
@@ -319,7 +319,7 @@ arr::getIndex()
 ####################################################################
 # ERROR FUNCTIONS
 ####################################################################
-err::errorHandler()
+errHandler()
 {
 	local -n lineNo="${1:-LINENO}"
 	local -n bashLineNo="${2:-BASH_LINENO}"
@@ -363,7 +363,7 @@ err::errorHandler()
 	exit "$code"
 }
 
-err::exit()
+errExit()
 {
 	local msg="${1:-"Unknown Error"}"
 	local code="${2:-1}"
