@@ -183,7 +183,9 @@ rm::gitBranch()
 
 	BRANCH_CURRENT="$(git branch --show-current)"
 
-	readarray BRANCHES < <(git branch -l | sed 's/^\*\s*//;s/^\s*//')
+	while read -r line; do
+		BRANCHES+=("$line")
+	done <<< "$(git branch -l | sed 's/^\*\s*//;s/^\s*//')"
 
 	$(arr::hasVal "${BRANCH_PROD}" "${BRANCHES[@]}") || err::exit "Branch '${BRANCH_PROD}' not found"
 	$(arr::hasVal "${BRANCH_STAGE}" "${BRANCHES[@]}") || err::exit "Branch '${BRANCH_STAGE}' not found"
