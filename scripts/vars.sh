@@ -12,9 +12,9 @@
 # Copyright:    Copyright © 2024 Redeyed Technologies
 ####################################################################
 
-declare -Ax LOGGED_COMMITS FILTERED_COMMITS TYPES TYPE_ALIASES
+declare -Ax LOGGED_COMMITS FILTERED_COMMITS
 
-declare -ax COMMITS LOGGED_TYPES TAGS AUTHORS
+declare -ax COMMITS TYPES TYPE_ALIASES LOGGED_TYPES TAGS AUTHORS
 
 declare -x CURRENT_VERSION
 declare -x LATEST_TAG PREV_TAG
