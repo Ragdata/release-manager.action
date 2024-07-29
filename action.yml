@@ -3,13 +3,13 @@ description: GitHub Action to tag and release a new version of your project
 author: 'ragdata'
 inputs:
     version:
-        description: "Release version"
+        description: "Release Version"
         required: false
     type:
-        description: "Bump Type (auto/patch/minor/major/first/version)"
+        description: "Bump Type"
         required: false
     branch:
-        description: "Branch to create release from"
+        description: "Branch / Tag to create release from"
         required: false
     pre_release:
         description: "Mark as pre-release?"

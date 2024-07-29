@@ -13,19 +13,22 @@
 ####################################################################
 # CORE FUNCTIONS
 ####################################################################
-rm::checkGit()
+rm::checkBranch()
 {
-	echo "Checking Git Config ..."
+	local -a BRANCHES
 
-	if ! git config --get user.email; then
-		[[ -z "$GIT_USER_NAME" ]] && err::exit "Git username not configured"
-		[[ -z "$GIT_USER_EMAIL" ]] && err::exit "No email address configured"
-		git config --global user.name = "$GIT_USER_NAME"
-		git config --global user.email = "$GIT_USER_EMAIL"
-		echo "Git global user configuration set: $GIT_USER_NAME <$GIT_USER_EMAIL>"
-	fi
+	# shellcheck disable=SC2034
+	BRANCH_CURRENT="$(git branch --show-current)"
 
-	#[[ "$(git status -s | head -c1 | wc -c)" -ne 0 ]] && err::exit "Commit staged / unversioned files first, then re-run workflow"
+	while read -r line; do
+		line="$(echo "$line" | tr -d '\n')"
+		BRANCHES+=("$line")
+	done <<< "$(git branch -l | sed 's/^\*\s*//')"
+
+	$(arr::hasVal "${BRANCH_PATCH}" "${BRANCHES[@]}") || { git branch "${BRANCH_PATCH}"; BRANCHES+=("${BRANCH_PATCH}"); echo "::debug::Added '${BRANCH_PATCH}' to BRANCHES"; }
+	$(arr::hasVal "${BRANCH_PROD}" "${BRANCHES[@]}") || { git branch "${BRANCH_PROD}"; BRANCHES+=("${BRANCH_PROD}"); echo "::debug::Added '${BRANCH_PROD}' to BRANCHES"; }
+	$(arr::hasVal "${BRANCH_RELEASE}" "${BRANCHES[@]}") || { git branch "${BRANCH_RELEASE}"; BRANCHES+=("${BRANCH_RELEASE}"); echo "::debug::Added '${BRANCH_RELEASE}' to BRANCHES"; }
+	$(arr::hasVal "${BRANCH_STAGE}" "${BRANCHES[@]}") || { git branch "${BRANCH_STAGE}"; BRANCHES+=("${BRANCH_STAGE}"); echo "::debug::Added '${BRANCH_STAGE}' to BRANCHES"; }
 }
 
 rm::checkConfig()
@@ -44,6 +47,21 @@ rm::checkConfig()
 	else
 		echo "Release Manager configuration file '$cfgFile' present"
 	fi
+}
+
+rm::checkGit()
+{
+	echo "Checking Git Config ..."
+
+	if ! git config --get user.email; then
+		[[ -z "$GIT_USER_NAME" ]] && err::exit "Git username not configured"
+		[[ -z "$GIT_USER_EMAIL" ]] && err::exit "No email address configured"
+		git config --global user.name = "$GIT_USER_NAME"
+		git config --global user.email = "$GIT_USER_EMAIL"
+		echo "Git global user configuration set: $GIT_USER_NAME <$GIT_USER_EMAIL>"
+	fi
+
+	#[[ "$(git status -s | head -c1 | wc -c)" -ne 0 ]] && err::exit "Commit staged / unversioned files first, then re-run workflow"
 }
 
 rm::getCurrentVersion()
@@ -137,58 +155,73 @@ rm::getInputs()
 	echo "INPUT_BRANCH = ${INPUT_BRANCH}"
 }
 
-rm::getLatestTags()
+#rm::getLatestTags()
+#{
+#	local gitTags numTags
+#
+#	gitTags="$(git tag -l --sort=version:refname)"
+#
+#	# Package tags as an array
+#	# shellcheck disable=SC2206
+#	TAGS=($gitTags)
+#
+#	# Get number of tags returned
+#	numTags="${#TAGS[@]}"
+#
+#	if (( "$numTags" > 0 )); then
+#		# Get the latest tag straight from the horse's mouth
+#		LATEST_TAG="$(curl -qsSL -H "Accept: application/vnd.github+json" -H "Authorization: Bearer ${GITHUB_TOKEN}" -H "X-GitHub-Api-Version: 2022-11-28" "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/releases/latest" | yq '.tag_name')"
+#		echo "::debug::LATEST_TAG = ${LATEST_TAG}"
+#
+#		# Find the previous tag
+#		if [[ "$LATEST_TAG" =~ ^[a-z\-\.]*[0-9]+\.*[0-9]*\.*[0-9]*\-?[0-9a-z\.\+]*$ ]]; then
+#			i="$(arr::getIndex "${TAGS[@]}" "${LATEST_TAG}")"
+#			[[ "${i}" == "x" ]] && err::exit "Latest Tag not found in git"
+#			if [[ "${TAGS[$i]}" == "${LATEST_TAG}" ]]; then
+#				((i+=1))
+#				PREV_TAG="${TAGS[$i]}"
+#			else
+#				err::exit "Tag mismatch: '${TAGS[$i]}' != '${LATEST_TAG}'"
+#			fi
+#		else
+#			if [[ "${#TAGS[@]}" -gt 0 ]]; then
+#				LATEST_TAG="${TAGS[0]}"
+#				[[ -n "${TAGS[1]}" ]] && PREV_TAG="${TAGS[1]}"
+#			fi
+#		fi
+#	fi
+#
+#	echo "LATEST_TAG = ${LATEST_TAG}"
+#	echo "PREV_TAG = ${PREV_TAG}"
+#}
+
+rm::getReleaseTag()
 {
-	local gitTags numTags
-
-	gitTags="$(git tag -l --sort=version:refname)"
-
-	# Package tags as an array
-	# shellcheck disable=SC2206
-	TAGS=($gitTags)
-
-	# Get number of tags returned
-	numTags="${#TAGS[@]}"
-
-	if (( "$numTags" > 0 )); then
-		# Get the latest tag straight from the horse's mouth
-		LATEST_TAG="$(curl -qsSL -H "Accept: application/vnd.github+json" -H "Authorization: Bearer ${GITHUB_TOKEN}" -H "X-GitHub-Api-Version: 2022-11-28" "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/releases/latest" | yq '.tag_name')"
-		echo "::debug::LATEST_TAG = ${LATEST_TAG}"
-
-		# Find the previous tag
-		if [[ "$LATEST_TAG" =~ ^[a-z\-\.]*[0-9]+\.*[0-9]*\.*[0-9]*\-?[0-9a-z\.\+]*$ ]]; then
-			i="$(arr::getIndex "${TAGS[@]}" "${LATEST_TAG}")"
-			[[ "${i}" == "x" ]] && err::exit "Latest Tag not found in git"
-			if [[ "${TAGS[$i]}" == "${LATEST_TAG}" ]]; then
-				((i+=1))
-				PREV_TAG="${TAGS[$i]}"
-			else
-				err::exit "Tag mismatch: '${TAGS[$i]}' != '${LATEST_TAG}'"
-			fi
-		else
-			if [[ "${#TAGS[@]}" -gt 0 ]]; then
-				LATEST_TAG="${TAGS[0]}"
-				[[ -n "${TAGS[1]}" ]] && PREV_TAG="${TAGS[1]}"
-			fi
-		fi
+	# Was there an input version?
+	if [[ -n "$INPUT_VERSION" ]]; then
+		RELEASE_TAG="$PREFIX$INPUT_VERSION$SUFFIX"
+	else
+		# What is the latest local tag?
+		# What is the latest repo tag?
+		# shellcheck disable=SC2034
+		RELEASE_TAG=""
 	fi
-
-	echo "LATEST_TAG = ${LATEST_TAG}"
-	echo "PREV_TAG = ${PREV_TAG}"
 }
 
-rm::gitBranch()
+rm::getTags()
 {
-	local -a BRANCHES
-
-	BRANCH_CURRENT="$(git branch --show-current)"
+	echo "Querying git for tags ..."
 
 	while read -r line; do
-		BRANCHES+=("$line")
-	done <<< "$(git branch -l | sed 's/^\*\s*//;s/^\s*//')"
+		line="$(echo "$line" | tr -d '\n')"
+		TAGS+=("$line")
+	done <<< "$(git tag -l --sort=version:refname)"
 
-	$(arr::hasVal "${BRANCH_PROD}" "${BRANCHES[@]}") || err::exit "Branch '${BRANCH_PROD}' not found"
-	$(arr::hasVal "${BRANCH_STAGE}" "${BRANCHES[@]}") || err::exit "Branch '${BRANCH_STAGE}' not found"
+	echo "Querying GitHub for latest release tag ..."
+
+	# shellcheck disable=SC2154
+	# shellcheck disable=SC2034
+	response=$(curl -sSL -w '%{http_code}' https://api.github.com/repos/"$GITHUB_REPOSITORY"/releases/latest)
 }
 
 rm::readConfig()

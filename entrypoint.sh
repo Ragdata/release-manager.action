@@ -50,7 +50,9 @@ rm::getInputs
 echo "::endgroup::"
 
 echo "::group::💾 Gathering Project Data"
-rm::gitBranch
+rm::getTags
+rm::getReleaseTag
+rm::checkBranch
 echo "::endgroup::"
 
 #-------------------------------------------------------------------
