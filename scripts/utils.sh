@@ -25,7 +25,7 @@ rm::checkGit()
 		echo "Git global user configuration set: $GIT_USER_NAME <$GIT_USER_EMAIL>"
 	fi
 
-	[[ "$(git status -s | head -c1 | wc -c)" -ne 0 ]] && err::exit "Commit staged files first, then re-run workflow"
+	[[ "$(git status -s | head -c1 | wc -c)" -ne 0 ]] && err::exit "Commit staged / unversioned files first, then re-run workflow"
 }
 
 rm::checkConfig()
@@ -82,12 +82,16 @@ rm::getInputs()
 			# shellcheck disable=SC2034
 			BUILD="${INPUT_VERSION##*+}"
 			INPUT_VERSION="${INPUT_VERSION%+*}"
+		else
+			BUILD=""
 		fi
 		# Look for existing suffix in INPUT_VERSION
 		if [[ "$INPUT_VERSION" == *"-"* ]]; then
 			# shellcheck disable=SC2034
 			SUFFIX="${INPUT_VERSION##*-}"
 			INPUT_VERSION="${INPUT_VERSION%-*}"
+		else
+			SUFFIX=""
 		fi
 	fi
 
@@ -171,6 +175,18 @@ rm::getLatestTags()
 
 	echo "LATEST_TAG = ${LATEST_TAG}"
 	echo "PREV_TAG = ${PREV_TAG}"
+}
+
+rm::gitBranch()
+{
+	local -a BRANCHES
+
+	BRANCH_CURRENT="$(git branch --show-current)"
+
+	readarray BRANCHES < <(git branch -l | sed 's/^\*\s*//;s/^\s*//')
+
+	$(arr::hasVal "${BRANCH_PROD}" "${BRANCHES[@]}") || err::exit "Branch '${BRANCH_PROD}' not found"
+	$(arr::hasVal "${BRANCH_STAGE}" "${BRANCHES[@]}") || err::exit "Branch '${BRANCH_STAGE}' not found"
 }
 
 rm::readConfig()
@@ -292,17 +308,26 @@ rm::validateConfig()
 ####################################################################
 # ARRAY FUNCTIONS
 ####################################################################
+arr::hasVal()
+{
+	local e val="${1}"
+	shift
+
+	for e; do [[ "$e" == "$val" ]] && return 0; done
+
+	return 1
+}
+
 arr::getIndex()
 {
 	local arr="${1}"
 	local val="${2}"
-	local found=false
 
 	for i in "${!arr[@]}"; do
-		[[ "${arr[$i]}" = "${val}" ]] && { echo "${i}"; found=true; break; }
+		[[ "${arr[$i]}" = "${val}" ]] && { echo "${i}"; return 0; }
 	done
 
-	[[ "${found}" ]] || echo "x"
+	return 1
 }
 
 ####################################################################
