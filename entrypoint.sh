@@ -26,7 +26,7 @@ declare -Ax PROFILE
 
 PROFILE["STARTTIME"]="$(date +%s.%N)"
 
-trap 'errHandler "LINENO" "BASH_LINENO" "${BASH_COMMAND}" "${?}"' ERR
+trap 'err::errHandler "LINENO" "BASH_LINENO" "${BASH_COMMAND}" "${?}"' ERR
 
 git config --global --add safe.directory "$GITHUB_WORKSPACE"
 #-------------------------------------------------------------------
