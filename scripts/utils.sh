@@ -47,7 +47,7 @@ rm::createTag()
 rm::parseVersion()
 {
 	local ver="${1:-}"
-	local -A arr="${2:-}"
+	local -n arr="${2:-}"
 
 	[[ -z "$ver" ]] && err::exit "Version not passed"
 	if [[ "$ver" =~ ^([a-z]+[-.]?)?(([0-9]+)\.?([0-9]*)\.?([0-9]*))(-([0-9a-z-.]*))?(\+([0-9a-z-.]*))?$ ]]; then
