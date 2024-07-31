@@ -46,7 +46,7 @@ rm::createTag()
 
 rm::parseVersion()
 {
-	local ver="${1:-}"
+	local ver="${1:-"0.0.0"}"
 	local -n arr="${2:-}"
 
 	[[ -z "$ver" ]] && err::exit "Version not passed"

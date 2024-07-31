@@ -41,17 +41,12 @@ source /usr/local/bin/scripts/utils.sh || { echo "::error::Unable to load depend
 echo "::group::📑 Configuring Release Manager"
 
 # Get all git tags
-echo "Querying git for tags ..."
+echo "Querying git for latest tag ..."
 
-while read -r line; do
-	line="$(echo "$line" | tr -d '\n')"
-	TAGS+=("$line")
-done <<< "$(git tag -l --sort=version:refname)"
+latestTag="$(git tag -l --sort=version:refname | head -n 1)"
 
-echo "::debug::TAGS has ${#TAGS[@]} elements"
-
-# shellcheck disable=SC2034
-[[ "${#TAGS[@]}" -gt 0 ]] && rm::parseVersion "${TAGS[0]}" "LATEST_TAG"
+## shellcheck disable=SC2034
+rm::parseVersion "$latestTag" "LATEST_TAG"
 
 echo "Querying GitHub for latest release tag ..."
 
