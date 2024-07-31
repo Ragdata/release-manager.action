@@ -15,213 +15,54 @@
 ####################################################################
 rm::checkBranch()
 {
-	local -a BRANCHES
-
 	# shellcheck disable=SC2034
 	BRANCH_CURRENT="$(git branch --show-current)"
 
-	while read -r line; do
-		line="$(echo "$line" | tr -d '\n')"
-		BRANCHES+=("$line")
-	done <<< "$(git branch -l | sed 's/^\*\s*//')"
+	if [[ -n "$INPUT_BRANCH" ]]; then
+		if [[ "$BRANCH_CURRENT" != "$INPUT_BRANCH" ]]; then git checkout "$INPUT_BRANCH" || err::exit "Failed to checkout requested branch '$INPUT_BRANCH'"; fi
+	elif [[ -n "$BRANCH_PROD" ]] && [[ "$BRANCH_CURRENT" != "$BRANCH_PROD" ]]; then
+		git checkout "$BRANCH_PROD" || err::exit "Failed to checkout production branch '$BRANCH_PROD'"
+	fi
 
-	$(arr::hasVal "${BRANCH_PATCH}" "${BRANCHES[@]}") || { git branch "${BRANCH_PATCH}"; BRANCHES+=("${BRANCH_PATCH}"); echo "::debug::Added '${BRANCH_PATCH}' to BRANCHES"; }
-	$(arr::hasVal "${BRANCH_PROD}" "${BRANCHES[@]}") || { git branch "${BRANCH_PROD}"; BRANCHES+=("${BRANCH_PROD}"); echo "::debug::Added '${BRANCH_PROD}' to BRANCHES"; }
-	$(arr::hasVal "${BRANCH_RELEASE}" "${BRANCHES[@]}") || { git branch "${BRANCH_RELEASE}"; BRANCHES+=("${BRANCH_RELEASE}"); echo "::debug::Added '${BRANCH_RELEASE}' to BRANCHES"; }
-	$(arr::hasVal "${BRANCH_STAGE}" "${BRANCHES[@]}") || { git branch "${BRANCH_STAGE}"; BRANCHES+=("${BRANCH_STAGE}"); echo "::debug::Added '${BRANCH_STAGE}' to BRANCHES"; }
+#	while read -r line; do
+#		line="$(echo "$line" | tr -d '\n')"
+#		BRANCHES+=("$line")
+#	done <<< "$(git branch -l | sed 's/^\*\s*//')"
+
+#	$(arr::hasVal "${BRANCH_PROD}" "${BRANCHES[@]}") || { git branch "${BRANCH_PROD}"; BRANCHES+=("${BRANCH_PROD}"); echo "::debug::Added '${BRANCH_PROD}' to BRANCHES"; }
+#	$(arr::hasVal "${BRANCH_PATCH}" "${BRANCHES[@]}") || { git branch "${BRANCH_PATCH}"; BRANCHES+=("${BRANCH_PATCH}"); echo "::debug::Added '${BRANCH_PATCH}' to BRANCHES"; }
+#	$(arr::hasVal "${BRANCH_RELEASE}" "${BRANCHES[@]}") || { git branch "${BRANCH_RELEASE}"; BRANCHES+=("${BRANCH_RELEASE}"); echo "::debug::Added '${BRANCH_RELEASE}' to BRANCHES"; }
+#	$(arr::hasVal "${BRANCH_STAGE}" "${BRANCHES[@]}") || { git branch "${BRANCH_STAGE}"; BRANCHES+=("${BRANCH_STAGE}"); echo "::debug::Added '${BRANCH_STAGE}' to BRANCHES"; }
 }
 
-rm::checkConfig()
+#[[ "$(git status -s | head -c1 | wc -c)" -ne 0 ]] && err::exit "Commit staged / unversioned files first, then re-run workflow"
+
+rm::createTag()
 {
-	echo "Checking configuration files ..."
-	# shellcheck disable=SC2154
-	if [[ ! -f "$cfgFile" ]]; then
-		echo "Release Manager configuration file not present"
-		if [[ -f "$cfgDefault" ]]; then
-			cfgFile="$TMP_DIR/.release.yml"
-			echo "Creating temporary config file"
-			envsubst < "$cfgDefault" > "$cfgFile" || err::exit "Failed to write temporary config file"
-		else
-			err::exit "Default configuration file not found"
-		fi
+	echo "Checking existance of release tag ..."
+
+	$(arr::hasValue "${RELEASE_VERSION['full']}" "${TAGS[@]}") && err::exit "Tag '${RELEASE_VERSION['full']}' already exists"
+}
+
+rm::parseVersion()
+{
+	local ver="${1:-}"
+	local -An arr="${2:-}"
+
+	[[ -z "$ver" ]] && err::exit "Version not passed"
+	if [[ "$ver" =~ ^([a-z]+[-.]?)?(([0-9]+)\.?([0-9]*)\.?([0-9]*))(-([0-9a-z-.]*))?(\+([0-9a-z-.]*))?$ ]]; then
+		arr['full']="${BASH_MATCH[0]}"
+		arr['prefix']="${BASH_MATCH[1]}"
+		arr['version']="${BASH_MATCH[2]}"
+		arr['major']="${BASH_MATCH[3]}"
+		arr['minor']="${BASH_MATCH[4]}"
+		arr['patch']="${BASH_MATCH[5]}"
+		arr['suffix']="${BASH_MATCH[7]}"
+		arr['build']="${BASH_MATCH[9]}"
+		arr['n_version']="${arr['major']}${arr['minor']}${arr['patch']}"
 	else
-		echo "Release Manager configuration file '$cfgFile' present"
+		err::exit "Invalid version format"
 	fi
-}
-
-rm::checkGit()
-{
-	echo "Checking Git Config ..."
-
-	if ! git config --get user.email; then
-		[[ -z "$GIT_USER_NAME" ]] && err::exit "Git username not configured"
-		[[ -z "$GIT_USER_EMAIL" ]] && err::exit "No email address configured"
-		git config --global user.name = "$GIT_USER_NAME"
-		git config --global user.email = "$GIT_USER_EMAIL"
-		echo "Git global user configuration set: $GIT_USER_NAME <$GIT_USER_EMAIL>"
-	fi
-
-	#[[ "$(git status -s | head -c1 | wc -c)" -ne 0 ]] && err::exit "Commit staged / unversioned files first, then re-run workflow"
-}
-
-rm::getCurrentVersion()
-{
-	echo "Querying configuration file for current version ..."
-
-	if [[ -f "$cfgFile" ]]; then
-		if $(yq 'has("version")' "$cfgFile"); then
-			echo "Current version obtained from configuration file"
-			CURRENT_VERSION="$(yq '.version' "$cfgFile")"
-		else
-			err::exit "No current version in configuration file"
-		fi
-	else
-		echo "No Configuration File - assigning default first version"
-		# shellcheck disable=SC2034
-		CURRENT_VERSION="0.1.0"
-	fi
-
-	echo "::debug::CURRENT_VERSION = $CURRENT_VERSION"
-}
-
-rm::getInputs()
-{
-	PREFIX=""
-	SUFFIX=""
-	BUILD=""
-
-	if [[ -n "$INPUT_VERSION" ]]; then
-		# Remove the prefix, if it exists
-		[[ "${INPUT_VERSION:0:1}" =~ ^[0-9]$ ]] || INPUT_VERSION="${INPUT_VERSION:1}"
-		# Validate the INPUT_VERSION format
-		[[ "$INPUT_VERSION" =~ ^[0-9]+\.*[0-9]*\.*[0-9]*\-?[0-9a-z\.\+]*$ ]] || err::exit "Invalid release version format"
-		# Look for build metadata in INPUT_VERSION
-		if [[ "$INPUT_VERSION" == *"+"* ]]; then
-			# shellcheck disable=SC2034
-			BUILD="${INPUT_VERSION##*+}"
-			INPUT_VERSION="${INPUT_VERSION%+*}"
-		else
-			BUILD=""
-		fi
-		# Look for existing suffix in INPUT_VERSION
-		if [[ "$INPUT_VERSION" == *"-"* ]]; then
-			# shellcheck disable=SC2034
-			SUFFIX="${INPUT_VERSION##*-}"
-			INPUT_VERSION="${INPUT_VERSION%-*}"
-		else
-			SUFFIX=""
-		fi
-	fi
-
-	while true
-	do
-		case "$INPUT_TYPE" in
-			first)
-				[[ -z "$INPUT_VERSION" ]] && INPUT_VERSION="1.0.0"
-				break;;
-			version)
-				[[ -z "$INPUT_VERSION" ]] && err::exit "Bump Type = 'version', but no release version specified"
-				break;;
-			update)
-				[[ -z "$INPUT_VERSION" ]] && err::exit "Bump Type = 'update', but no release version specified"
-				break;;
-			patch)
-				# PLACEHOLDER
-				break;;
-			minor)
-				# PLACEHOLDER
-				break;;
-			major)
-				# PLACEHOLDER
-				break;;
-			*)
-				INPUT_TYPE="auto"
-				break;;
-		esac
-	done
-
-	[[ -z "$INPUT_BRANCH" ]] && INPUT_BRANCH="${GITHUB_REF_NAME}"
-
-	if $INPUT_PRE_RELEASE; then
-		# Don't overwrite a suffix which was included with the release version input
-		[[ -z "$SUFFIX" ]] && SUFFIX="-alpha"
-	fi
-
-	echo "PREFIX = ${PREFIX}"
-	echo "INPUT_VERSION = ${INPUT_VERSION}"
-	echo "SUFFIX = ${SUFFIX}"
-	echo "BUILD = ${BUILD}"
-	echo "INPUT_TYPE = ${INPUT_TYPE}"
-	echo "INPUT_BRANCH = ${INPUT_BRANCH}"
-}
-
-#rm::getLatestTags()
-#{
-#	local gitTags numTags
-#
-#	gitTags="$(git tag -l --sort=version:refname)"
-#
-#	# Package tags as an array
-#	# shellcheck disable=SC2206
-#	TAGS=($gitTags)
-#
-#	# Get number of tags returned
-#	numTags="${#TAGS[@]}"
-#
-#	if (( "$numTags" > 0 )); then
-#		# Get the latest tag straight from the horse's mouth
-#		LATEST_TAG="$(curl -qsSL -H "Accept: application/vnd.github+json" -H "Authorization: Bearer ${GITHUB_TOKEN}" -H "X-GitHub-Api-Version: 2022-11-28" "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/releases/latest" | yq '.tag_name')"
-#		echo "::debug::LATEST_TAG = ${LATEST_TAG}"
-#
-#		# Find the previous tag
-#		if [[ "$LATEST_TAG" =~ ^[a-z\-\.]*[0-9]+\.*[0-9]*\.*[0-9]*\-?[0-9a-z\.\+]*$ ]]; then
-#			i="$(arr::getIndex "${TAGS[@]}" "${LATEST_TAG}")"
-#			[[ "${i}" == "x" ]] && err::exit "Latest Tag not found in git"
-#			if [[ "${TAGS[$i]}" == "${LATEST_TAG}" ]]; then
-#				((i+=1))
-#				PREV_TAG="${TAGS[$i]}"
-#			else
-#				err::exit "Tag mismatch: '${TAGS[$i]}' != '${LATEST_TAG}'"
-#			fi
-#		else
-#			if [[ "${#TAGS[@]}" -gt 0 ]]; then
-#				LATEST_TAG="${TAGS[0]}"
-#				[[ -n "${TAGS[1]}" ]] && PREV_TAG="${TAGS[1]}"
-#			fi
-#		fi
-#	fi
-#
-#	echo "LATEST_TAG = ${LATEST_TAG}"
-#	echo "PREV_TAG = ${PREV_TAG}"
-#}
-
-rm::getReleaseTag()
-{
-	# Was there an input version?
-	if [[ -n "$INPUT_VERSION" ]]; then
-		RELEASE_TAG="$PREFIX$INPUT_VERSION$SUFFIX"
-	else
-		# What is the latest local tag?
-		# What is the latest repo tag?
-		# shellcheck disable=SC2034
-		RELEASE_TAG=""
-	fi
-}
-
-rm::getTags()
-{
-	echo "Querying git for tags ..."
-
-	while read -r line; do
-		line="$(echo "$line" | tr -d '\n')"
-		TAGS+=("$line")
-	done <<< "$(git tag -l --sort=version:refname)"
-
-	echo "Querying GitHub for latest release tag ..."
-
-	# shellcheck disable=SC2154
-	# shellcheck disable=SC2034
-	response=$(curl -sSL -w '%{http_code}' https://api.github.com/repos/"$GITHUB_REPOSITORY"/releases/latest)
 }
 
 rm::readConfig()
@@ -355,8 +196,9 @@ arr::hasVal()
 
 arr::getIndex()
 {
-	local arr="${1}"
-	local val="${2}"
+	local val="${1:-}"
+	# shellcheck disable=SC2178
+	local -a arr="${2:-}"
 
 	for i in "${!arr[@]}"; do
 		[[ "${arr[$i]}" = "${val}" ]] && { echo "${i}"; return 0; }
@@ -419,4 +261,46 @@ err::exit()
 
 	echo "::error::${msg}"
 	exit "${code}"
+}
+
+####################################################################
+# GITHUB FUNCTIONS
+####################################################################
+gh::api()
+{
+	local OPTIND opt
+	local url data method="-X GET"
+	local methods=("GET" "POST" "PUT" "PATCH" "DELETE")
+	local headers="-H \"Accept: application/vnd.github+json\" -H \"Authorization: Bearer ${GITHUB_TOKEN}\" -H \"X-GitHub-Api-Version: 2022-11-28\""
+
+	while getopts ":X:d:" opt; do
+		case "$opt" in
+			X)
+				$(arr::hasVal "${opt^^}" "${methods[@]}") || err::exit "Invalid method option '${opt^^}'"
+				method="-X ${opt^^}"
+				;;
+			d)	data="-d ${opt}"
+				;;
+			:)
+				err::exit "Option -${OPTARG} requires an argument"
+				;;
+			?)
+				err::exit "Invalid option: -${OPTARG}"
+				;;
+			*)
+				err::exit "Unknown error while processing options"
+				;;
+		esac
+	done
+
+	# shellcheck disable=SC2004
+	[[ $(( $# - $OPTIND )) -lt 1 ]] && err::exit "Missing URL"
+
+	# shellcheck disable=SC2124
+	url="${@:$OPTIND:1}"
+
+	result=$(curl -sSL "$method" "$headers" "$data" -w '%{http_code}' "$url")
+
+	RESPONSE['code']=$(tail -n1 <<< "$result")
+	RESPONSE['body']=$(sec '$ d' <<< "$result")
 }

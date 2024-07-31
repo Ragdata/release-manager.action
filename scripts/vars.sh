@@ -13,11 +13,10 @@
 ####################################################################
 
 declare -Ax LOGGED_COMMITS FILTERED_COMMITS
+declare -Ax LATEST_TAG LATEST_REPO_TAG IN_VERSION CURRENT_VERSION RELEASE_VERSION
 
-declare -ax COMMITS TYPES TYPE_ALIASES LOGGED_TYPES TAGS RELEASE_TAGS AUTHORS
+declare -ax BRANCHES COMMITS TYPES TYPE_ALIASES LOGGED_TYPES TAGS AUTHORS
 
-declare -x CURRENT_VERSION
-declare -x RELEASE_TAG LATEST_TAG PREV_TAG LATEST_REPO_TAG
 declare -x PREFIX SUFFIX BUILD
 declare -x GIT_USER_NAME GIT_USER_EMAIL
 declare -x BRANCH_PROD BRANCH_STAGE BRANCH_PATCH BRANCH_RELEASE BRANCH_CURRENT
@@ -27,7 +26,7 @@ declare -x COPYRIGHT PROTECT_PROD CHANGELOG
 
 declare -x BIN_DIR SHARE_DIR SCRIPT_DIR TMPL_DIR TMP_DIR
 
-declare -x cfgFile cfgDefault httpHeaders
+declare -x cfgFile cfgDefault
 
 BIN_DIR="/usr/local/bin"
 SHARE_DIR="/usr/local/share"
@@ -38,5 +37,3 @@ TMP_DIR="$(mktemp -d)"
 
 cfgFile="$GITHUB_WORKSPACE/.release.yml"
 cfgDefault="$TMPL_DIR/.release.yml"
-
-httpHeaders="-H Accept: application/vnd.github+json -H Authorization: Bearer $GITHUB_TOKEN -H X-GitHub-Api-Version: 2022-11-28"
