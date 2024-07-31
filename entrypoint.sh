@@ -49,7 +49,7 @@ while read -r line; do
 done <<< "$(git tag -l --sort=version:refname)"
 
 # shellcheck disable=SC2034
-rm::parseVersion "${TAGS[0]}" "LATEST_TAG"
+[[ "${#TAGS[@]}" -gt 0 ]] && rm::parseVersion "${TAGS[0]}" "LATEST_TAG"
 
 echo "Querying GitHub for latest release tag ..."
 
