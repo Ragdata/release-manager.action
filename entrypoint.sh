@@ -48,6 +48,8 @@ while read -r line; do
 	TAGS+=("$line")
 done <<< "$(git tag -l --sort=version:refname)"
 
+echo "::debug::TAGS has ${#TAGS[@]} elements"
+
 # shellcheck disable=SC2034
 [[ "${#TAGS[@]}" -gt 0 ]] && rm::parseVersion "${TAGS[0]}" "LATEST_TAG"
 
