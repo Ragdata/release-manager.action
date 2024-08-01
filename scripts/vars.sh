@@ -15,7 +15,7 @@
 declare -Ax LOGGED_COMMITS FILTERED_COMMITS RESPONSE
 declare -Ax LATEST_TAG LATEST_REPO_TAG IN_VERSION CURRENT_VERSION RELEASE_VERSION
 
-declare -ax BRANCHES COMMITS TYPES TYPE_ALIASES LOGGED_TYPES TAGS AUTHORS
+declare -ax BRANCHES COMMITS TYPES TYPE_ALIASES LOGGED_TYPES TAGS AUTHORS HEADERS
 
 declare -x PREFIX SUFFIX BUILD
 declare -x GIT_USER_NAME GIT_USER_EMAIL
@@ -35,5 +35,8 @@ TMPL_DIR="$SHARE_DIR/tmpl"
 
 TMP_DIR="$(mktemp -d)"
 
+HEADERS=("-H \"Accept: application/vnd.github+json\"" "-H \"Authorization: Bearer ${GITHUB_TOKEN}\"" "-H \"X-GitHub-Api-Version: 2022-11-28\"")
+
 cfgFile="$GITHUB_WORKSPACE/.release.yml"
 cfgDefault="$TMPL_DIR/.release.yml"
+

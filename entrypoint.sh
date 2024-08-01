@@ -54,7 +54,7 @@ echo "Querying GitHub for latest release tag ..."
 
 url="https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/latest"
 
-result=$(curl -s -w '%{http_code}' "$url")
+result=$(curl -s "${HEADERS[@]}" -w '%{http_code}' "$url")
 
 RESPONSE['code']=$(tail -n1 <<< "$result")
 RESPONSE['body']=$(sed '$ d' <<< "$result")
