@@ -269,7 +269,7 @@ err::exit()
 gh::api()
 {
 	local OPTIND opt
-	local url data method="-X GET"
+	local url data="" method="-X GET"
 	local methods=("GET" "POST" "PUT" "PATCH" "DELETE")
 
 	while getopts ":X:d:" opt; do
