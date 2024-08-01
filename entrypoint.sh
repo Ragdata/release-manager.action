@@ -61,7 +61,7 @@ RESPONSE['body']=$(sed '$ d' <<< "$result")
 
 echo "::debug::HTTP STATUS = ${RESPONSE['code']} @ $url"
 
-[[ "${RESPONSE['code']}" != 200 ]] && err::exit "GitHub API returned status code ${RESPONSE['code']}"
+[[ "${RESPONSE['code']}" != 200 ]] && err::exit "GitHub API returned status code ${RESPONSE['code']} @ $url"
 
 if [[ "${#RESPONSE['body']}" -gt 0 ]]; then
 	echo "${RESPONSE['body']}" | yq 'has("tag_name")' - && rm::parseVersion "$(echo "${RESPONSE['body']}" | yq '.tag_name' -)" "LATEST_REPO_TAG"
