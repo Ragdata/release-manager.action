@@ -47,21 +47,21 @@ rm::createTag()
 rm::parseVersion()
 {
 	local ver="${1:-0.0.0}"
-	local -n arr="${2:-}"
+	local -n arr="${2}"
 
 	[[ -z "$ver" ]] && err::exit "Version not passed"
-	if [[ "$ver" =~ ^([a-z]+[-.]?)?(([0-9]+)\.?([0-9]*)\.?([0-9]*))(-([0-9a-z-.]*))?(\+([0-9a-z-.]*))?$ ]]; then
-		arr['full']="${BASH_MATCH[0]}"
-		arr['prefix']="${BASH_MATCH[1]}"
-		arr['version']="${BASH_MATCH[2]}"
-		arr['major']="${BASH_MATCH[3]}"
-		arr['minor']="${BASH_MATCH[4]}"
-		arr['patch']="${BASH_MATCH[5]}"
-		arr['suffix']="${BASH_MATCH[7]}"
-		arr['build']="${BASH_MATCH[9]}"
+	if [[ $ver =~ ^([a-z]+[-.]?)?(([0-9]+)\.?([0-9]*)\.?([0-9]*))(-([0-9a-zA-Z\.-]*))?(\+([0-9a-zA-Z\.-]*))?$ ]]; then
+		arr['full']="${BASH_REMATCH[0]}"
+		arr['prefix']="${BASH_REMATCH[1]}"
+		arr['version']="${BASH_REMATCH[2]}"
+		arr['major']="${BASH_REMATCH[3]}"
+		arr['minor']="${BASH_REMATCH[4]}"
+		arr['patch']="${BASH_REMATCH[5]}"
+		arr['suffix']="${BASH_REMATCH[7]}"
+		arr['build']="${BASH_REMATCH[9]}"
 		arr['n_version']="${arr['major']}${arr['minor']}${arr['patch']}"
 	else
-		err::exit "Invalid version format"
+		err::exit "Invalid version format - '$ver'"
 	fi
 }
 
