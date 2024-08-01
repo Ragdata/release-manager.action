@@ -269,7 +269,7 @@ err::exit()
 gh::api()
 {
 	local OPTIND opt
-	local url data="" method="-X GET"
+	local url data="" method=""
 	local methods=("GET" "POST" "PUT" "PATCH" "DELETE")
 
 	while getopts ":X:d:" opt; do
@@ -298,7 +298,7 @@ gh::api()
 
 	echo "::debug::URL = $url"
 
-	result=$(curl -sSL "$method" -H "Accept: application/vnd.github+json" -H "Authorization: Bearer ${GITHUB_TOKEN}" -H "X-GitHub-Api-Version: 2022-11-28" "$data" -w '%{http_code}' "$url")
+	result=$(curl -s "$method" -H "Accept: application/vnd.github+json" -H "Authorization: Bearer ${GITHUB_TOKEN}" -H "X-GitHub-Api-Version: 2022-11-28" "$data" -w '%{http_code}' "$url")
 
 	RESPONSE[code]=$(tail -n1 <<< "$result")
 	RESPONSE[body]=$(sed '$ d' <<< "$result")
