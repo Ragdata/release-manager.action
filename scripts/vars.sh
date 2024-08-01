@@ -12,7 +12,7 @@
 # Copyright:    Copyright © 2024 Redeyed Technologies
 ####################################################################
 
-declare -Ax LOGGED_COMMITS FILTERED_COMMITS RESPONSE
+declare -Ax LOGGED_COMMITS FILTERED_COMMITS RESPONSE CFG
 declare -Ax LATEST_TAG LATEST_REPO_TAG IN_VERSION CURRENT_VERSION RELEASE_VERSION
 
 declare -ax BRANCHES COMMITS TYPES TYPE_ALIASES LOGGED_TYPES TAGS AUTHORS HEADERS
