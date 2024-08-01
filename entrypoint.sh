@@ -48,9 +48,11 @@ latestTag="$(git tag -l --sort=version:refname | head -n 1)"
 ## shellcheck disable=SC2034
 rm::parseVersion "$latestTag" "LATEST_TAG"
 
+debug1="$(declare -p LATEST_TAG)"; echo "::debug::$debug1"
+
 echo "Querying GitHub for latest release tag ..."
 
-gh::api https://api.github.com/repos/"$GITHUB_REPOSITORY"/releases/latest
+gh::api "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/latest"
 
 [[ "${RESPONSE['code']}" != 200 ]] && err::exit "GitHub API returned status code ${RESPONSE['code']}"
 

@@ -271,15 +271,14 @@ gh::api()
 	local OPTIND opt
 	local url data method="-X GET"
 	local methods=("GET" "POST" "PUT" "PATCH" "DELETE")
-	local headers="-H \"Accept: application/vnd.github+json\" -H \"Authorization: Bearer ${GITHUB_TOKEN}\" -H \"X-GitHub-Api-Version: 2022-11-28\""
 
 	while getopts ":X:d:" opt; do
-		case "$opt" in
+		case "${opt}" in
 			X)
-				$(arr::hasVal "${opt^^}" "${methods[@]}") || err::exit "Invalid method option '${opt^^}'"
-				method="-X ${opt^^}"
+				$(arr::hasVal "${OPTARG^^}" "${methods[@]}") || err::exit "Invalid method option '${OPTARG^^}'"
+				method="-X ${OPTARG^^}"
 				;;
-			d)	data="-d ${opt}"
+			d)	data="-d ${OPTARG}"
 				;;
 			:)
 				err::exit "Option -${OPTARG} requires an argument"
@@ -293,14 +292,14 @@ gh::api()
 		esac
 	done
 
-	# shellcheck disable=SC2004
-	[[ $(( $# - $OPTIND )) -lt 1 ]] && err::exit "Missing URL"
+	shift $((OPTIND-1))
 
-	# shellcheck disable=SC2124
-	url="${@:$OPTIND:1}"
+	url="${1}"
 
-	result=$(curl -sSL "$method" "$headers" "$data" -w '%{http_code}' "$url")
+	echo "::debug::URL = $url"
 
-	RESPONSE['code']=$(tail -n1 <<< "$result")
-	RESPONSE['body']=$(sec '$ d' <<< "$result")
+	result=$(curl -sSL "$method" -H "Accept: application/vnd.github+json" -H "Authorization: Bearer ${GITHUB_TOKEN}" -H "X-GitHub-Api-Version: 2022-11-28" "$data" -w '%{http_code}' "$url")
+
+	RESPONSE[code]=$(tail -n1 <<< "$result")
+	RESPONSE[body]=$(sed '$ d' <<< "$result")
 }
