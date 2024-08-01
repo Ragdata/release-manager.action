@@ -52,7 +52,14 @@ debug1="$(declare -p LATEST_TAG)"; echo "::debug::$debug1"
 
 echo "Querying GitHub for latest release tag ..."
 
-gh::api "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/latest"
+#gh::api "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/latest"
+
+result=$(curl -s -w '%{http_code}' "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/latest")
+
+RESPONSE['code']=$(tail -n1 <<< "$result")
+RESPONSE['body']=$(sed '$ d' <<< "$result")
+
+echo "::debug::HTTP STATUS = ${RESPONSE['code']}"
 
 [[ "${RESPONSE['code']}" != 200 ]] && err::exit "GitHub API returned status code ${RESPONSE['code']}"
 
