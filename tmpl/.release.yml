@@ -11,5 +11,5 @@ authors:
       # surname:
       email: ${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com
       # affiliation:
-protect_prod: true
 changelog: true
+release: true
