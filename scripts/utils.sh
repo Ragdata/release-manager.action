@@ -298,7 +298,8 @@ gh::api()
 
 	echo "::debug::URL = $url"
 
-	result=$(curl -s "$method" -H "Accept: application/vnd.github+json" -H "Authorization: Bearer ${GITHUB_TOKEN}" -H "X-GitHub-Api-Version: 2022-11-28" "$data" -w '%{http_code}' "$url")
+	#result=$(curl -s "$method" -H "Accept: application/vnd.github+json" -H "Authorization: Bearer ${GITHUB_TOKEN}" -H "X-GitHub-Api-Version: 2022-11-28" "$data" -w '%{http_code}' "$url")
+	result=$(curl -s -w '%{http_code}' "$url")
 
 	RESPONSE[code]=$(tail -n1 <<< "$result")
 	RESPONSE[body]=$(sed '$ d' <<< "$result")
