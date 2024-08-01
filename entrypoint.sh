@@ -52,7 +52,8 @@ debug1="$(declare -p LATEST_TAG)"; echo "::debug::$debug1"
 
 echo "Querying GitHub for latest release tag ..."
 
-url="https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/latest"
+#url="https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/latest"
+url="https://api.github.com/repos/ragdata/.github/releases/latest"
 
 result=$(curl -s "${HEADERS[@]}" -w '%{http_code}' "$url")
 
