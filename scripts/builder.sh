@@ -13,10 +13,6 @@
 # License:      MIT License
 # Copyright:    Copyright © 2024 Redeyed Technologies
 ####################################################################
-# INITIALISATION
-####################################################################
-
-####################################################################
 # BUILDER FUNCTIONS
 ####################################################################
 bld::changelog()
@@ -29,7 +25,7 @@ bld::changelog()
 		bld::parseTemplateBlock "{{ #doc body }}" "{{ /doc body }}" "$TMP_DIR/tmpl_body.md"
 
 		if [[ -f "../CHANGELOG.md" ]]; then
-			TMPL_CONTENT=$(chg::parseTemplateBlock "[//]: # (START)" "[//]: # (END)" "../CHANGELOG.md")
+			TMPL_CONTENT=$(bld::parseTemplateBlock "[//]: # (START)" "[//]: # (END)" "../CHANGELOG.md")
 		else
 			TMPL_CONTENT=""
 		fi
@@ -44,7 +40,7 @@ bld::changelog()
 
 bld::firstlog()
 {
-	TMPL="$TMPL_DIR/changelog.md"
+	TMPL="$TMPL_DIR/firstlog.md"
 
 	if [[ -f "$TMPL" ]]; then
 		bld::parseTemplateBlock "{{ #doc header }}" "{{ /doc header }}" "$TMP_DIR/tmpl_header.md"
@@ -78,9 +74,8 @@ bld::parseBlock()
 	while IFS= read -r LINE
 	do
 		if [[ ${LINE,,} =~ $VAR ]]; then
-			OUTPUT="$(chg::parseVar "$LINE")"
-		else
-			OUTPUT="$LINE"
+			echo "${BASH_REMATCH[0]}"
+			OUTPUT="$(bld::parseVar "$LINE" "$VAR")"
 		fi
 	done < "$fileName"
 
@@ -113,14 +108,15 @@ bld::parseTemplateBlock()
 
 bld::parseVar()
 {
-	local line="${1}"
+	local LINE="${1}"
+	local VAR="${2}"
 	local tag varName
-	local VAR=$(regex::VAR)
 
-	if [[ ${line,,} =~ $VAR ]]; then
+	while [[ "${LINE,,}" =~ $VAR ]]; do
 		tag="${BASH_REMATCH[0]}"
-		varName="${BASH_REMATCH[1]}"
-	fi
+		varName="${BASH_REMATCH[2]}"
+		LINE="${LINE/$tag/${CFG[$varName]}}"
+	done
 
-	echo -e "${line/"$tag"/"${CFG[$varName]}"}"
+	echo -e "$LINE"
 }
