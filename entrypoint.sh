@@ -304,7 +304,7 @@ fi
 # Update release config
 #-------------------------------------------------------------------
 echo "Updating release config file"
-yq -i ".version = $releaseTag" "$GITHUB_WORKSPACE/.release.yml"
+yq -i ".version = \"$releaseTag\"" "$GITHUB_WORKSPACE/.release.yml"
 
 #-------------------------------------------------------------------
 # Add / Commit files
