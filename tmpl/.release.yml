@@ -1,6 +1,6 @@
 extends: .release.base.yml
 name: ${GITHUB_REPOSITORY}
-# description:
+description: Your project's description
 version: ${CURRENT_VERSION}
 # copyright:
 # website:

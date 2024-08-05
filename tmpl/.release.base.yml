@@ -71,6 +71,16 @@ aliases:
       title: Diagnostic Steps
       description: Changes to code which contribute towards, but do not constitute, a bugfix
       icon: ":nut_and_bolt:"
+    - type: depends
+      link: feat
+      title: Dependencies
+      description: Files which our software depends upon for its functionality
+      icon: ":arrow_double_up:"
+    - type: devDepends
+      link: chore
+      title: DevDependencies
+      description: Files which we depend upon to develop and/or build our software
+      icon: ":arrow_up_small:"
     - type: ghpages
       link: docs
       title: GitHub Pages
