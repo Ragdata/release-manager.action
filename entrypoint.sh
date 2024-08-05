@@ -263,7 +263,7 @@ releaseBranch="$BRANCH_RELEASE/$releaseTag"
 if arr::hasVal "$releaseBranch" "${BRANCHES[@]}"; then
 	git checkout "$releaseBranch" || err::exit "Failed to checkout requested branch '$releaseBranch'"
 else
-	git checkout -b "$releaseBranch" || err::exit "Failed to create requested branch '$releaseBranch'"
+	git checkout -b "$releaseBranch" "$sourceBranch" || err::exit "Failed to create requested branch '$releaseBranch'"
 fi
 
 #-------------------------------------------------------------------
