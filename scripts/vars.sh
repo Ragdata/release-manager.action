@@ -38,6 +38,6 @@ TMP_DIR="$(mktemp -d)"
 
 HEADERS=("-H \"Accept: application/vnd.github+json\"" "-H \"Authorization: Bearer ${GITHUB_TOKEN}\"" "-H \"X-GitHub-Api-Version: 2022-11-28\"")
 
-cfgFile="$GITHUB_WORKSPACE/.release.yml"
+cfgFile="$GITHUB_WORKSPACE/.github/.release.yml"
 cfgDefault="$TMPL_DIR/.release.yml"
 
