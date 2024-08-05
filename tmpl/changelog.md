@@ -7,6 +7,7 @@ See the [Contributor's Guidelines](https://github.com/Ragdata/.github/blob/maste
 
 {{ /doc header }}
 {{ #doc body }}
+[//]: # (START)
 {{ #each releases }}
 ## [{{ release_version }}]({{ release_url }}) ({{ release_date }})
 {{ #each sections }}
@@ -22,6 +23,7 @@ See the [Contributor's Guidelines](https://github.com/Ragdata/.github/blob/maste
 {{ /each sections }}
 
 {{ /each releases }}
+[//]: # (END)
 {{ /doc body }}
 {{ #doc footer }}
 
