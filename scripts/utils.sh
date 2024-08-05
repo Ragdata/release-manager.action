@@ -46,16 +46,6 @@ rm::parseVersion()
 ####################################################################
 # ARRAY FUNCTIONS
 ####################################################################
-arr::hasVal()
-{
-	local e val="${1}"
-	shift
-
-	for e; do [[ "$e" == "$val" ]] && return 0; done
-
-	return 1
-}
-
 arr::getIndex()
 {
 	local val="${1:-}"
@@ -69,65 +59,24 @@ arr::getIndex()
 	return 1
 }
 
-####################################################################
-# CHANGELOG FUNCTIONS
-####################################################################
-chg::buildChangelog()
+arr::hasKey()
 {
-	local TMPL_FILE TMPL_HEADER TMPL_FOOTER TMPL_CONTENT
+	local -n array="$1"
+	local key="$2"
 
-	TMPL="$TMPL_DIR/changelog.md"
+	[[ ${array[$key]+_} ]] && return 0
 
-	if [[ -f "$TMPL" ]]; then
-		TMPL_HEADER=$(chg::parseTemplateBlock "{{ #doc header }}" "{{ /doc header }}")
-		TMPL_FOOTER=$(chg::parseTemplateBlock "{{ #doc footer }}" "{{ /doc footer }}")
-		TMPL_BODY=$(chg::parseTemplateBlock "{{ #doc body }}" "{{ /doc body }}")
-
-		# shellcheck disable=SC2157
-		if [[ "$GITHUB_WORKSPACE/CHANGELOG.md" ]]; then
-			TMPL_CONTENT=$(chg::parseTemplateBlock "[//]: # (START)" "[//]: # (END)" "$GITHUB_WORKSPACE/CHANGELOG.md")
-		else
-			TMPL_CONTENT=""
-		fi
-
-#		TMPL_HEADER=$(chg::parseBlock "$TMPL_HEADER")
-#		TMPL_FOOTER=$(chg::parseBlock "$TMPL_FOOTER")
-	else
-		err::exit "Template file '$TMPL' not found"
-	fi
+	return 1
 }
 
-chg::parseBlock()
+arr::hasVal()
 {
-	local CONTENT="${1:-}"
+	local e val="${1}"
+	shift
 
-	[[ -z "$CONTENT" ]] && return 0
+	for e; do [[ "$e" == "$val" ]] && return 0; done
 
-
-#	while IFS= read -r LINE
-#	do
-#		if [[ ${LINE,,} =~ $PATTERN ]]; then
-#			if [[ ${LINE,,} =~ $CMD ]]; then
-#				if [[ ${LINE,,} =~ $COND ]]; then
-#					if [[ ${LINE,,} =~ $COND_OPEN ]]; then
-#
-#					elif [[ ${LINE,,} =~ $COND_CLOSE ]]; then
-#
-#					fi
-#				elif [[ ${LINE,,} =~ $LOOP ]]; then
-#					if [[ ${LINE,,} =~ $LOOP_OPEN ]]; then
-#
-#					elif [[ ${LINE,,} =~ $LOOP_CLOSE ]]; then
-#
-#					fi
-#				fi
-#			elif [[ ${LINE,,} =~ $OPEN ]]; then
-#
-#			elif [[ ${LINE,,} =~ $CLOSE ]]; then
-#
-#			fi
-#		fi
-#	done <<< "$CONTENT"
+	return 1
 }
 
 ####################################################################
