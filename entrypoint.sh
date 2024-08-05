@@ -70,7 +70,7 @@ result=$(gh::latestRelease)
 RESPONSE['code']=$(tail -n1 <<< "$result")
 RESPONSE['body']=$(sed '$ d' <<< "$result")
 
-echo "::debug::HTTP STATUS = ${RESPONSE['code']} @ $url"
+echo "::debug::HTTP STATUS = ${RESPONSE['code']}"
 
 case "${RESPONSE['code']}" in
 	200)
@@ -80,7 +80,7 @@ case "${RESPONSE['code']}" in
 		rm::parseVersion "0.0.0" LATEST_REPO_TAG
 		;;
 	*)
-		err::exit "GitHub API returned status code ${RESPONSE['code']} @ $url"
+		err::exit "GitHub API returned status code ${RESPONSE['code']}"
 		;;
 esac
 
