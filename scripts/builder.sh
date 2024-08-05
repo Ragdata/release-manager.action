@@ -43,16 +43,26 @@ bld::firstlog()
 	TMPL="$TMPL_DIR/firstlog.md"
 
 	if [[ -f "$TMPL" ]]; then
+		echo "Parsing CHANGELOG template ..."
 		bld::parseTemplateBlock "{{ #doc header }}" "{{ /doc header }}" "$TMP_DIR/tmpl_header.md"
 		bld::parseTemplateBlock "{{ #doc footer }}" "{{ /doc footer }}" "$TMP_DIR/tmpl_footer.md"
 		bld::parseTemplateBlock "{{ #doc body }}" "{{ /doc body }}" "$TMP_DIR/tmpl_body.md"
 
+		echo "Parsing CHANGELOG template blocks ..."
 		bld::parseBlock "$TMP_DIR/tmpl_header.md"
 		bld::parseBlock "$TMP_DIR/tmpl_footer.md"
 		bld::parseBlock "$TMP_DIR/tmpl_body.md"
 	else
 		err::exit "Template file '$TMPL' not found"
 	fi
+
+	echo "Writing CHANGELOG"
+
+	touch "$GITHUB_WORKSPACE/CHANGELOG.md"
+
+	[[ -f "$TMP_DIR/tmpl_header.md" ]] && cat "$TMP_DIR/tmpl_header.md" >> "$GITHUB_WORKSPACE/CHANGELOG.md"
+	[[ -f "$TMP_DIR/tmpl_body.md" ]] && cat "$TMP_DIR/tmpl_body.md" >> "$GITHUB_WORKSPACE/CHANGELOG.md"
+	[[ -f "$TMP_DIR/tmpl_footer.md" ]] && cat "$TMP_DIR/tmpl_footer.md" >> "$GITHUB_WORKSPACE/CHANGELOG.md"
 }
 
 bld::parseBlock()
@@ -115,7 +125,11 @@ bld::parseVar()
 	while [[ "${LINE,,}" =~ $VAR ]]; do
 		tag="${BASH_REMATCH[0]}"
 		varName="${BASH_REMATCH[2]}"
-		LINE="${LINE/$tag/${CFG[$varName]}}"
+		if arr::hasKey CFG "$varName"; then
+			LINE="${LINE/$tag/${CFG[$varName]}}"
+		else
+			err::exit "Variable '$varName' not found"
+		fi
 	done
 
 	echo -e "$LINE"
