@@ -1,5 +1,7 @@
 <div align="center">
 
+[![Codacy Badge](https://img.shields.io/codacy/grade/e27e9da7f30e42f3853f0feec232a347/master?logo=codacy&labelColor=31383f)](https://app.codacy.com/gh/Ragdata/release-manager.action/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
+<br />
 [![Pre-Release](https://img.shields.io/badge/Status-Pre--Release-d20000?labelColor=31383f)](https://github.com/Ragdata/Ragdata/blob/master/docs/badges.md)
 
 </div>
@@ -12,6 +14,8 @@
 
 </h1>
 
+<a name="toc"></a>
+
 <h3 align="center">
 <a href="https://github.com/ragdata/release-manager.action/issues" target="_blank">Issues</a>
 🔸
@@ -20,23 +24,13 @@
 
 <div align="center">
 
-![GitHub issues](https://img.shields.io/github/issues-raw/ragdata/release-manager.action?style=for-the-badge&logo=github)
+[![GitHub issues](https://img.shields.io/github/issues-raw/ragdata/release-manager.action?style=for-the-badge&logo=github)][issues]
 ![Last Commit](https://img.shields.io/github/last-commit/ragdata/release-manager.action/master?logo=github&style=for-the-badge)
 ![MIT](https://img.shields.io/badge/License-MIT-gold?style=for-the-badge)
-
+<br />
 [![wakatime](https://wakatime.com/badge/user/7e04d9d4-3a44-495e-b622-69fdbafd036c/project/28750979-b8ba-4fef-85c8-2d0a2aae6bf9.svg?style=for-the-badge)](https://wakatime.com/badge/user/7e04d9d4-3a44-495e-b622-69fdbafd036c/project/28750979-b8ba-4fef-85c8-2d0a2aae6bf9)
 
 </div>
-
-<h3 align="center">
-
-If you like this repository, please give it a ⭐ (it really does help)
-
-<img alt="GitHub repository stars" src="https://img.shields.io/github/stars/ragdata/release-manager.action?style=social">
-
-</h3>
-
-<a name="toc"></a>
 
 ## ⭐ [Project Overview](#toc)
 
@@ -139,8 +133,5 @@ If you like this repository, please give it a ⭐ (it really does help)
 </div>
 
 [advisory]: https://github.com/ragdata/release-manager.action/security/advisories/new
-[all-contributors]: https://allcontributors.org
-[contributing]: https://github.com/ragdata/.github/blob/master/.github/CONTRIBUTING.md
 [issues]: https://github.com/ragdata/release-manager.action/issues
 [security]: https://github.com/ragdata/release-manager.action/security/policy
-[sponsors]: https://github.com/sponsors/Ragdata
