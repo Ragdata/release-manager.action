@@ -78,6 +78,7 @@ case "${RESPONSE['code']}" in
 		;;
 	404)
 		rm::parseVersion "0.0.0" LATEST_REPO_TAG
+		isFirst=true
 		;;
 	*)
 		err::exit "GitHub API returned status code ${RESPONSE['code']}"
@@ -136,6 +137,8 @@ if ! git config --get user.email; then
 	git config --global user.name = "$GIT_USER_NAME"
 	git config --global user.email = "$GIT_USER_EMAIL"
 	echo "Git global user configuration set: $GIT_USER_NAME <$GIT_USER_EMAIL>"
+	git config --global push.autoSetupRemote true
+	echo "Git global push.autoSetupRemote set: true"
 fi
 
 #-------------------------------------------------------------------
@@ -144,20 +147,20 @@ fi
 echo "Get input variables ..."
 
 case "$INPUT_TYPE" in
+	auto)
+		# PLACEHOLDER
+		;;
 	version)
 		[[ -z "$INPUT_VERSION" ]] && err::exit "Bump Type = 'version', but no release version specified"
 		;;
-	first)
-		[[ -z "$INPUT_VERSION" ]] && INPUT_VERSION="1.0.0"
-		;;
 	patch)
-		(( "${#LATEST_REPO_TAG[@]}" )) || err::exit "Bump Type = 'patch', but no previous releases"
+		[[ "${LATEST_REPO_TAG['version']}" == "0.0.0" ]] && err::exit "Bump Type = 'patch', but no previous releases"
 		;;
 	minor)
-		(( "${#LATEST_REPO_TAG[@]}" )) || err::exit "Bump Type = 'minor', but no previous releases"
+		[[ "${LATEST_REPO_TAG['version']}" == "0.0.0" ]] && err::exit "Bump Type = 'minor', but no previous releases"
 		;;
 	major)
-		(( "${#LATEST_REPO_TAG[@]}" )) || err::exit "Bump Type = 'major', but no previous releases"
+		[[ "${LATEST_REPO_TAG['version']}" == "0.0.0" ]] && err::exit "Bump Type = 'major', but no previous releases"
 		;;
 	*)
 		err::exit "Invalid Bump Type"
@@ -180,21 +183,17 @@ echo "INPUT_DRAFT = ${INPUT_DRAFT}"
 echo "Get release version ..."
 
 releaseTag=""
-tagPrefix=""
-tagSuffix=""
-tagBuild=""
 
-$INPUT_PRE_RELEASE && tagSuffix="-alpha"
+$INPUT_PRE_RELEASE && SUFFIX="-alpha"
 
 case "$INPUT_TYPE" in
+	auto)
+		;;
 	version)
 		if [[ -n "${IN_VERSION['prefix']}" ]]; then tagPrefix="${IN_VERSION['prefix']}"; else tagPrefix="$PREFIX"; fi
 		if $INPUT_PRE_RELEASE && [[ "${IN_VERSION['suffix']}" ]]; then tagSuffix="${IN_VERSION['suffix']}"; fi
 		if [[ -n "${IN_VERSION['build']}" ]]; then tagBuild="+${IN_VERSION['build']}"; fi
 		releaseTag="$tagPrefix${IN_VERSION['version']}$tagSuffix$tagBuild"
-		;;
-	first)
-		releaseTag="$tagPrefix${IN_VERSION['version']}$tagSuffix"
 		;;
 	patch)
 		tagDigit="${LATEST_REPO_TAG['patch']}"
