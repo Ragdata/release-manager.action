@@ -37,7 +37,7 @@ cfg::read()
 
 		envsubst < "$extFilePath" > "$tmpFilePath" || err::exit "Environment substitution failure"
 
-		$(yq 'has("prefix")' "$tmpFilePath") && { PREFIX="$(yq '.prefix' "$tmpFilePath")"; CFG['prefix']="$PREFIX"; echo "::debug::PREFIX = $PREFIX"; }
+#		$(yq 'has("prefix")' "$tmpFilePath") && { PREFIX="$(yq '.prefix' "$tmpFilePath")"; CFG['prefix']="$PREFIX"; echo "::debug::PREFIX = $PREFIX"; }
 		if $(yq 'has("git_user")' "$tmpFilePath"); then
 			$(yq '.git_user | has("name")' "$tmpFilePath") && { GIT_USER_NAME="$(yq '.git_user.name' "$tmpFilePath")"; CFG['git_user.name']="$GIT_USER_NAME"; echo "::debug::GIT_USER_NAME = $GIT_USER_NAME"; }
 			$(yq '.git_user | has("email")' "$tmpFilePath") && { GIT_USER_EMAIL="$(yq '.git_user.email' "$tmpFilePath")"; CFG['git_user.email']="$GIT_USER_EMAIL"; echo "::debug::GIT_USER_EMAIL = $GIT_USER_EMAIL"; }
@@ -72,7 +72,7 @@ cfg::read()
 
 	cfg::validate "$filePath"
 
-	$(yq 'has("prefix")' "$filePath") && { PREFIX="$(yq '.prefix' "$filePath")"; CFG['prefix']="$PREFIX"; echo "::debug::PREFIX = $PREFIX"; }
+#	$(yq 'has("prefix")' "$filePath") && { PREFIX="$(yq '.prefix' "$filePath")"; CFG['prefix']="$PREFIX"; echo "::debug::PREFIX = $PREFIX"; }
 	$(yq 'has("name")' "$filePath") && { REPO_NAME="$(yq '.name' "$filePath")"; CFG['name']="$REPO_NAME"; echo "::debug::REPO_NAME = $REPO_NAME"; }
 	$(yq 'has("description")' "$filePath") && { REPO_DESC="$(yq '.description' "$filePath")"; CFG['description']="$REPO_DESC"; echo "::debug::REPO_DESC = $REPO_DESC"; }
 	$(yq 'has("repo_url")' "$filePath") && { REPO_URL="$(yq '.repo_url' "$filePath")"; CFG['repo_url']="$REPO_URL"; echo "::debug::REPO_URL = $REPO_URL"; }
