@@ -52,8 +52,11 @@ echo "Querying git for latest tag ..."
 
 latestTag="$(git tag -l --sort=version:refname | head -n 1)"
 
-## shellcheck disable=SC2034
-rm::parseVersion "$latestTag" "LATEST_TAG"
+if [[ -n "$latestTag" ]]; then
+	rm::parseVersion "$latestTag" LATEST_TAG
+else
+	rm::parseVersion "0.0.0" LATEST_TAG
+fi
 
 debug1="$(declare -p LATEST_TAG)"; echo "::debug::$debug1"
 
@@ -74,7 +77,7 @@ case "${RESPONSE['code']}" in
 		echo "${RESPONSE['body']}" | yq 'has("tag_name")' - && rm::parseVersion "$(echo "${RESPONSE['body']}" | yq '.tag_name' -)" "LATEST_REPO_TAG"
 		;;
 	404)
-		rm::parseVersion "0.0.0" "LATEST_REPO_TAG"
+		rm::parseVersion "0.0.0" LATEST_REPO_TAG
 		;;
 	*)
 		err::exit "GitHub API returned status code ${RESPONSE['code']} @ $url"
@@ -89,15 +92,15 @@ echo "Querying configuration file for current version ..."
 if [[ -f "$cfgFile" ]]; then
 	if yq 'has("version")' "$cfgFile"; then
 		echo "Current version obtained from configuration file"
-		rm::parseVersion "$(yq '.version' "$cfgFile")" "CURRENT_VERSION"
+		rm::parseVersion "$(yq '.version' "$cfgFile")" CURRENT_VERSION
 	fi
 elif (( ${#LATEST_REPO_TAG[@]} )); then
 	echo "Current version obtained from GitHub Release"
-	rm::parseVersion "${LATEST_REPO_TAG['version']}" "CURRENT_VERSION"
+	rm::parseVersion "${LATEST_REPO_TAG['version']}" CURRENT_VERSION
 else
 	echo "Current version assigned as default first version"
 	# shellcheck disable=SC2034
-	rm::parseVersion "0.1.0" "CURRENT_VERSION"
+	rm::parseVersion "0.1.0" CURRENT_VERSION
 fi
 
 echo "::debug::CURRENT_VERSION = ${CURRENT_VERSION['full']}"
@@ -301,7 +304,7 @@ fi
 # Update release config
 #-------------------------------------------------------------------
 echo "Updating release config file"
-yq -i e "version |= ${RELEASE_VERSION['full']}" "$GITHUB_WORKSPACE/.release.yml"
+yq -i e "version |= $releaseTag" "$GITHUB_WORKSPACE/.release.yml"
 
 #-------------------------------------------------------------------
 # Add / Commit files
@@ -315,7 +318,7 @@ git push
 # Tag release
 #-------------------------------------------------------------------
 echo "Tagging release"
-git tag "$releaseTaG"
+git tag "$releaseTag"
 git push --tags
 
 
