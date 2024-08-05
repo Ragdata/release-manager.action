@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2034
 # shellcheck disable=SC2154
 # shellcheck disable=SC2317
 ####################################################################
@@ -212,6 +213,10 @@ echo "Release Version: $releaseTag"
 
 rm::parseVersion "$releaseTag" "RELEASE_VERSION"
 
+CFG['release_version']="${RELEASE_VERSION['full']}"
+CFG['release_url']="https://github.com/$GITHUB_REPOSITORY/releases/tag/${RELEASE_VERSION['full']}"
+CFG['release_date']="$(date '+%b %d, %Y')"
+
 echo "::endgroup::"
 
 #-------------------------------------------------------------------
@@ -291,26 +296,41 @@ else
 	changelogDot="🔴"
 fi
 
-echo "::endgroup::"
+#-------------------------------------------------------------------
+# Update release config
+#-------------------------------------------------------------------
+echo "Updating release config file"
+yq -i e "version |= ${RELEASE_VERSION['full']}" "$GITHUB_WORKSPACE/.release.yml"
 
 #-------------------------------------------------------------------
-# Configuration
+# Add / Commit files
 #-------------------------------------------------------------------
-#echo "::group::🎁 Processing ..."
-#rm::getReleaseTag
-##rm::createBranch
-##rm::createTag
-#echo "::endgroup::"
+echo "Committing changes to git"
+[[ "$(git ls-files -o --directory --exclude-standard | sed q | wc -l)" -gt 0 ]] && git add .
+git commit -am "$MESSAGE_COMMIT"
+git push
+
+#-------------------------------------------------------------------
+# Tag release
+#-------------------------------------------------------------------
+echo "Tagging release"
+git tag "$releaseTaG"
+git push --tags
+
+
+echo "::endgroup::"
+
 
 #-------------------------------------------------------------------
 # Write Job Summary
 #-------------------------------------------------------------------
 summaryTable="
-| Variable	    | Value		     |
-|:--------------|:--------------:|
-| Release Tag   | $releaseTag	 |
-| Source Branch | $sourceBranch  |
-| CHANGELOG     | $changelogDot  |
+| Variable	     | Value		  |
+|:---------------|:--------------:|
+| Release Tag    | $releaseTag	  |
+| Source Branch  | $sourceBranch  |
+| Release Branch | $releaseBranch |
+| CHANGELOG      | $changelogDot  |
 "
 
 cat << EOF >> "$GITHUB_STEP_SUMMARY"
