@@ -8,25 +8,23 @@
 
 <img height="256" src="https://raw.githubusercontent.com/Ragdata/media/master/logo/Ragdata-64.svg" alt="RagsWorks - Reusable Actions and Workflows" />
 
-[Ragdata's Release Manager](https://github.com/ragdata/release-manager-action/releases/tag/v0.1.0)
+[Ragdata's Release Manager](https://github.com/ragdata/release-manager.action/releases/tag/v0.1.0)
 
 </h1>
 
 <h3 align="center">
-<a href="https://github.com/ragdata/release-manager-action/issues" target="_blank">Issues</a>
+<a href="https://github.com/ragdata/release-manager.action/issues" target="_blank">Issues</a>
 🔸
-<a href="https://github.com/ragdata/release-manager-action/releases" target="_blank">Releases</a>
+<a href="https://github.com/ragdata/release-manager.action/releases" target="_blank">Releases</a>
 </h3>
 
 <div align="center">
 
-![GitHub issues](https://img.shields.io/github/issues-raw/ragdata/release-manager-action?style=for-the-badge&logo=github)
-![Last Commit](https://img.shields.io/github/last-commit/ragdata/release-manager-action/master?logo=github&style=for-the-badge)
+![GitHub issues](https://img.shields.io/github/issues-raw/ragdata/release-manager.action?style=for-the-badge&logo=github)
+![Last Commit](https://img.shields.io/github/last-commit/ragdata/release-manager.action/master?logo=github&style=for-the-badge)
 ![MIT](https://img.shields.io/badge/License-MIT-gold?style=for-the-badge)
 
-#### _Elapsed Project Time_
-
-[![wakatime](https://wakatime.com/badge/user/7e04d9d4-3a44-495e-b622-69fdbafd036c/project/28750979-b8ba-4fef-85c8-2d0a2aae6bf9.svg)](https://wakatime.com/badge/user/7e04d9d4-3a44-495e-b622-69fdbafd036c/project/28750979-b8ba-4fef-85c8-2d0a2aae6bf9)
+[![wakatime](https://wakatime.com/badge/user/7e04d9d4-3a44-495e-b622-69fdbafd036c/project/28750979-b8ba-4fef-85c8-2d0a2aae6bf9.svg?style=for-the-badge)](https://wakatime.com/badge/user/7e04d9d4-3a44-495e-b622-69fdbafd036c/project/28750979-b8ba-4fef-85c8-2d0a2aae6bf9)
 
 </div>
 
@@ -34,7 +32,7 @@
 
 If you like this repository, please give it a ⭐ (it really does help)
 
-<img alt="GitHub repository stars" src="https://img.shields.io/github/stars/ragdata/release-manager-action?style=social">
+<img alt="GitHub repository stars" src="https://img.shields.io/github/stars/ragdata/release-manager.action?style=social">
 
 </h3>
 
@@ -52,6 +50,12 @@ If you like this repository, please give it a ⭐ (it really does help)
 [`^ Top`](#toc)
 
 ## 📂 [Installation](#toc)
+
+
+
+[`^ Top`](#toc)
+
+## 📛 [Badges](#toc)
 
 
 
@@ -123,20 +127,20 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 If you like this repository, please give it a ⭐ (it really does help)
 
-<img alt="GitHub repository stars" src="https://img.shields.io/github/stars/ragdata/release-manager-action?style=social">
+<img alt="GitHub repository stars" src="https://img.shields.io/github/stars/ragdata/release-manager.action?style=social">
 
 </h3>
 
 <div align="center">
 
-<a href="https://visitorbadge.io/status?path=https%3A%2F%2Fgithub.com%2Fragdata%2Frelease-manager-action" target="_blank"><img alt="Visitors" src="https://api.visitorbadge.io/api/combined?path=https%3A%2F%2Fgithub.com%2Fragdata%2Frelease-manager-action&countColor=%23d20000" /></a>
+<a href="https://visitorbadge.io/status?path=https%3A%2F%2Fgithub.com%2Fragdata%2Frelease-manager.action" target="_blank"><img alt="Visitors" src="https://api.visitorbadge.io/api/combined?path=https%3A%2F%2Fgithub.com%2Fragdata%2Frelease-manager.action&countColor=%23d20000" /></a>
 <a href="https://github.com/ragdata" target="_blank"><img alt="Ragdata" src="https://img.shields.io/badge/-Made_With_☕_By_Ragdata-D20000?style=for-the-badge" /></a>
 
 </div>
 
-[advisory]: https://github.com/ragdata/release-manager-action/security/advisories/new
+[advisory]: https://github.com/ragdata/release-manager.action/security/advisories/new
 [all-contributors]: https://allcontributors.org
 [contributing]: https://github.com/ragdata/.github/blob/master/.github/CONTRIBUTING.md
-[issues]: https://github.com/ragdata/release-manager-action/issues
-[security]: https://github.com/ragdata/release-manager-action/security/policy
+[issues]: https://github.com/ragdata/release-manager.action/issues
+[security]: https://github.com/ragdata/release-manager.action/security/policy
 [sponsors]: https://github.com/sponsors/Ragdata
