@@ -191,6 +191,7 @@ rm::parseVersion "$releaseTag" "RELEASE_VERSION"
 CFG['release_version']="${RELEASE_VERSION['full']}"
 CFG['release_url']="https://github.com/$GITHUB_REPOSITORY/releases/tag/${RELEASE_VERSION['full']}"
 CFG['release_date']="$(date '+%b %d, %Y')"
+if [[ "$isFirst" ]]; then CFG['release_notes']="First Release"; else CFG['release_notes']="NOTES"; fi
 
 echo "::endgroup::"
 
@@ -244,13 +245,13 @@ fi
 #-------------------------------------------------------------------
 # Write config file if required
 #-------------------------------------------------------------------
-if [[ ! -f "$GITHUB_WORKSPACE/.release.yml" ]]; then
-	echo "Creating release manage config file ..."
+if [[ ! -f "$GITHUB_WORKSPACE/.github/.release.yml" ]]; then
+	echo "Creating release manager config file ..."
 	if [[ -f "$TMP_DIR/.release.yml" ]]; then
-		cp "$TMP_DIR/.release.yml" "$GITHUB_WORKSPACE/.release.yml" || err::exit "Unable to copy config file from '$TMP_DIR/.release.yml' to '$GITHUB_WORKSPACE/.release.yml'"
+		cp "$TMP_DIR/.release.yml" "$GITHUB_WORKSPACE/.github/.release.yml" || err::exit "Unable to copy config file from '$TMP_DIR/.release.yml' to '$GITHUB_WORKSPACE/.github/.release.yml'"
 	else
 		if [[ -f "$cfgDefault" ]]; then
-			envsubst < "$cfgDefault" > "$GITHUB_WORKSPACE/.release.yml" || err::exit "Unable to write config file '$GITHUB_WORKSPACE/.release.yml'"
+			envsubst < "$cfgDefault" > "$GITHUB_WORKSPACE/.github/.release.yml" || err::exit "Unable to write config file '$GITHUB_WORKSPACE/.github/.release.yml'"
 		else
 			err::exit "Unable to find default configuration file"
 		fi
@@ -262,11 +263,7 @@ fi
 #-------------------------------------------------------------------
 if [[ "$CHANGELOG" ]]; then
 	changelogDot="🟢"
-	if [[ "$INPUT_TYPE" == "first" ]]; then
-		bld::firstlog
-	else
-		bld::changelog
-	fi
+	bld::changelog
 else
 	changelogDot="🔴"
 fi

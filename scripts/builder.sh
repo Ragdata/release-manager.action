@@ -17,51 +17,45 @@
 ####################################################################
 bld::changelog()
 {
-	TMPL="$TMPL_DIR/changelog.md"
+	if [[ -f "$GITHUB_WORKSPACE/.github/.changelog.md" ]]; then
+		TMPL="$GITHUB_WORKSPACE/.github/.changelog.md"
+	else
+		TMPL="$TMPL_DIR/.changelog.md"
+	fi
 
 	if [[ -f "$TMPL" ]]; then
 		bld::parseTemplateBlock "{{ #doc header }}" "{{ /doc header }}" "$TMP_DIR/tmpl_header.md"
 		bld::parseTemplateBlock "{{ #doc footer }}" "{{ /doc footer }}" "$TMP_DIR/tmpl_footer.md"
-		bld::parseTemplateBlock "{{ #doc body }}" "{{ /doc body }}" "$TMP_DIR/tmpl_body.md"
+		bld::parseTemplateBlock "{{ #doc releases }}" "{{ /doc releases }}" "$TMP_DIR/tmpl_releases.md"
+		bld::parseTemplateBlock "{{ #doc sections }}" "{{ /doc sections }}" "$TMP_DIR/tmpl_sections.md"
+		bld::parseTemplateBlock "{{ #doc commits }}" "{{ /doc commits }}" "$TMP_DIR/tmpl_commits.md"
 
-		if [[ -f "../CHANGELOG.md" ]]; then
-			TMPL_CONTENT=$(bld::parseTemplateBlock "[//]: # (START)" "[//]: # (END)" "../CHANGELOG.md")
+		if [[ -f "$GITHUB_WORKSPACE/CHANGELOG.md" ]]; then
+			TMPL_CONTENT=$(bld::parseTemplateBlock "[//]: # (START)" "[//]: # (END)" "$TMP_DIR/tmpl_changelog.md" "$GITHUB_WORKSPACE/CHANGELOG.md")
 		else
 			TMPL_CONTENT=""
 		fi
 
 		bld::parseBlock "$TMP_DIR/tmpl_header.md"
 		bld::parseBlock "$TMP_DIR/tmpl_footer.md"
-		#bld::parseBlock "$TMP_DIR/tmpl_body.md"
-	else
-		err::exit "Template file '$TMPL' not found"
-	fi
-}
-
-bld::firstlog()
-{
-	TMPL="$TMPL_DIR/firstlog.md"
-
-	if [[ -f "$TMPL" ]]; then
-		echo "Parsing CHANGELOG template ..."
-		bld::parseTemplateBlock "{{ #doc header }}" "{{ /doc header }}" "$TMP_DIR/tmpl_header.md"
-		bld::parseTemplateBlock "{{ #doc footer }}" "{{ /doc footer }}" "$TMP_DIR/tmpl_footer.md"
-		bld::parseTemplateBlock "{{ #doc body }}" "{{ /doc body }}" "$TMP_DIR/tmpl_body.md"
-
-		echo "Parsing CHANGELOG template blocks ..."
-		bld::parseBlock "$TMP_DIR/tmpl_header.md"
-		bld::parseBlock "$TMP_DIR/tmpl_footer.md"
-		#bld::parseBlock "$TMP_DIR/tmpl_body.md"
+		bld::parseBlock "$TMP_DIR/tmpl_releases.md"
 	else
 		err::exit "Template file '$TMPL' not found"
 	fi
 
 	echo "Writing CHANGELOG"
 
-	touch "$GITHUB_WORKSPACE/CHANGELOG.md"
+	if [[ -f "$GITHUB_WORKSPACE/CHANGELOG.md" ]]; then
+		echo -n > "$GITHUB_WORKSPACE/CHANGELOG.md"
+	else
+		touch "$GITHUB_WORKSPACE/CHANGELOG.md"
+	fi
 
 	[[ -f "$TMP_DIR/tmpl_header.md" ]] && cat "$TMP_DIR/tmpl_header.md" >> "$GITHUB_WORKSPACE/CHANGELOG.md"
-	[[ -f "$TMP_DIR/tmpl_body.md" ]] && cat "$TMP_DIR/tmpl_body.md" >> "$GITHUB_WORKSPACE/CHANGELOG.md"
+	echo -e "[//]: # (START)" >> "$GITHUB_WORKSPACE/CHANGELOG.md"
+	[[ -f "$TMP_DIR/tmpl_releases.md" ]] && cat "$TMP_DIR/tmpl_releases.md" >> "$GITHUB_WORKSPACE/CHANGELOG.md"
+	[[ -f "$TMP_DIR/tmpl_changelog.md" ]] && cat "$TMP_DIR/tmpl_changelog.md" >> "$GITHUB_WORKSPACE/CHANGELOG.md"
+	echo -e "[//]: # (END)" >> "$GITHUB_WORKSPACE/CHANGELOG.md"
 	[[ -f "$TMP_DIR/tmpl_footer.md" ]] && cat "$TMP_DIR/tmpl_footer.md" >> "$GITHUB_WORKSPACE/CHANGELOG.md"
 }
 
@@ -96,6 +90,16 @@ bld::parseBlock()
 	done < "$fileName"
 
 	echo -e "$OUTPUT" > "$fileName"
+}
+
+bld::parseCommits()
+{
+	echo ""
+}
+
+bld::parseSections()
+{
+	echo ""
 }
 
 bld::parseTemplateBlock()
@@ -140,6 +144,9 @@ bld::parseVar()
 				date)
 					local date="$(date '+%d %b %Y')"
 					LINE="${LINE/$tag/$date}"
+					;;
+				sections)
+					LINE="$(bld::parseSections)"
 					;;
 				*)
 					err::exit "Variable '$varName' not found"
