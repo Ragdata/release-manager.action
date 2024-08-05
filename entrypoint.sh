@@ -38,6 +38,7 @@ source /usr/local/bin/scripts/vars.sh || { echo "::error::Unable to load depende
 source /usr/local/bin/scripts/config.sh || { echo "::error::Unable to load dependency '/usr/local/bin/scripts/config.sh'"; exit 1; }
 source /usr/local/bin/scripts/utils.sh || { echo "::error::Unable to load dependency '/usr/local/bin/scripts/utils.sh'"; exit 1; }
 source /usr/local/bin/scripts/builder.sh || { echo "::error::Unable to load dependency '/usr/local/bin/scripts/builder.sh'"; exit 1; }
+source /usr/local/bin/scripts/ghapi.sh || { echo "::error::Unable to load dependency '/usr/local/bin/scripts/ghapi.sh'"; exit 1; }
 
 ####################################################################
 # MAIN

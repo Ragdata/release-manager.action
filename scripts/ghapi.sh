@@ -16,5 +16,7 @@
 ####################################################################
 gh::latestRelease()
 {
-	curl -s "${HEADERS[@]}" -w '%{http_code}' "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/latest"
+	result=$(curl -s "${HEADERS[@]}" -w '%{http_code}' "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/latest")
+
+	echo "$result"
 }
