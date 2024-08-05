@@ -45,20 +45,20 @@ source /usr/local/bin/scripts/ghapi.sh || { echo "::error::Unable to load depend
 ####################################################################
 echo "::group::📑 Configuring Release Manager"
 
-#-------------------------------------------------------------------
-# Get latest git tag
-#-------------------------------------------------------------------
-echo "Querying git for latest tag ..."
-
-latestTag="$(git tag -l --sort=version:refname | head -n 1)"
-
-if [[ -n "$latestTag" ]]; then
-	rm::parseVersion "$latestTag" LATEST_TAG
-else
-	rm::parseVersion "0.0.0" LATEST_TAG
-fi
-
-debug1="$(declare -p LATEST_TAG)"; echo "::debug::$debug1"
+##-------------------------------------------------------------------
+## Get latest git tag
+##-------------------------------------------------------------------
+#echo "Querying git for latest tag ..."
+#
+#latestTag="$(git tag -l --sort=version:refname | head -n 1)"
+#
+#if [[ -n "$latestTag" ]]; then
+#	rm::parseVersion "$latestTag" LATEST_TAG
+#else
+#	rm::parseVersion "0.0.0" LATEST_TAG
+#fi
+#
+#debug1="$(declare -p LATEST_TAG)"; echo "::debug::$debug1"
 
 #-------------------------------------------------------------------
 # Get latest release tag
@@ -95,7 +95,7 @@ if [[ -f "$cfgFile" ]]; then
 		echo "Current version obtained from configuration file"
 		rm::parseVersion "$(yq '.version' "$cfgFile")" CURRENT_VERSION
 	fi
-elif (( ${#LATEST_REPO_TAG[@]} )); then
+elif [[ "${LATEST_REPO_TAG['version']}" != "0.0.0" ]]; then
 	echo "Current version obtained from GitHub Release"
 	rm::parseVersion "${LATEST_REPO_TAG['version']}" CURRENT_VERSION
 else
@@ -178,6 +178,29 @@ echo "INPUT_PRE_RELEASE = ${INPUT_PRE_RELEASE}"
 echo "INPUT_DRAFT = ${INPUT_DRAFT}"
 
 #-------------------------------------------------------------------
+# Get Branches
+#-------------------------------------------------------------------
+BRANCH_CURRENT="$(git branch --show-current)"
+
+# Build a list of branches
+while read -r line; do
+	line="$(echo "$line" | tr -d '\n')"
+	BRANCHES+=("$line")
+done <<< "$(git branch -l | sed 's/^\*\s*//')"
+
+echo "Get source branch ..."
+
+# Get source branch
+if [[ -n "$INPUT_BRANCH" ]]; then
+	BRANCH_SOURCE="$INPUT_BRANCH"
+elif [[ -n "$BRANCH_PROD" ]]; then
+	BRANCH_SOURCE="$BRANCH_PROD"
+else
+	BRANCH_SOURCE="$BRANCH_CURRENT"
+fi
+
+arr::hasVal "$BRANCH_SOURCE" "${BRANCHES[@]}" || err::exit "Source branch '$BRANCH_SOURCE' not found"
+#-------------------------------------------------------------------
 # Get next release version
 #-------------------------------------------------------------------
 echo "Get release version ..."
@@ -203,44 +226,22 @@ echo "::group::🎁 Processing ..."
 #-------------------------------------------------------------------
 # Check / Checkout branches
 #-------------------------------------------------------------------
-BRANCH_CURRENT="$(git branch --show-current)"
-
-# Build a list of branches
-while read -r line; do
-	line="$(echo "$line" | tr -d '\n')"
-	BRANCHES+=("$line")
-done <<< "$(git branch -l | sed 's/^\*\s*//')"
 
 echo "Checking out source branch ..."
 
 # Checkout source branch
-if [[ -n "$INPUT_BRANCH" ]]; then
-	sourceBranch="$INPUT_BRANCH"
-	if [[ "$BRANCH_CURRENT" != "$INPUT_BRANCH" ]]; then
-		if arr::hasVal "$BRANCH_INPUT" "${BRANCHES[@]}"; then
-			git checkout "$INPUT_BRANCH" || err::exit "Failed to checkout requested branch '$INPUT_BRANCH'"
-		else
-			git checkout -b "$INPUT_BRANCH" || err::exit "Failed to create requested branch '$INPUT_BRANCH'"
-			BRANCHES+=("$INPUT_BRANCH")
-		fi
-	fi
-elif [[ -n "$BRANCH_PROD" ]] && [[ "$BRANCH_CURRENT" != "$BRANCH_PROD" ]]; then
-	sourceBranch="$BRANCH_PROD"
-	git checkout "$BRANCH_PROD" || err::exit "Failed to checkout production branch '$BRANCH_PROD'"
+if [[ "$BRANCH_CURRENT" != "$BRANCH_SOURCE" ]]; then
+	git checkout "$BRANCH_SOURCE" || err::exit "Failed to checkout source branch '$BRANCH_SOURCE'"
 fi
 
 [[ "$(git status -s | head -c1 | wc -c)" -ne 0 ]] && err::exit "Commit staged / unversioned files first, then re-run workflow"
 
+# Create release branch
 echo "Checking out release branch ..."
 
 releaseBranch="$BRANCH_RELEASE/$releaseTag"
 
-# Create release branch
-if arr::hasVal "$releaseBranch" "${BRANCHES[@]}"; then
-	git checkout "$releaseBranch" || err::exit "Failed to checkout requested branch '$releaseBranch'"
-else
-	git checkout -b "$releaseBranch" "$sourceBranch" || err::exit "Failed to create requested branch '$releaseBranch'"
-fi
+git checkout -b "$releaseBranch" "$BRANCH_SOURCE" || err::exit "Failed to create requested branch '$releaseBranch'"
 
 #-------------------------------------------------------------------
 # Write config file if required
