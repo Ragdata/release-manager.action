@@ -138,7 +138,8 @@ bld::parseVar()
 		else
 			case "$varName" in
 				date)
-					date="$(date '+%d %b %Y')"
+					local date="$(date '+%d %b %Y')"
+					LINE="${LINE/$tag/$date}"
 					;;
 				*)
 					err::exit "Variable '$varName' not found"
