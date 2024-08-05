@@ -104,10 +104,16 @@ bld::parseSections()
 
 bld::parseTemplateBlock()
 {
+	if [[ -f "$GITHUB_WORKSPACE/.github/.changelog.md" ]]; then
+		TMPL="$GITHUB_WORKSPACE/.github/.changelog.md"
+	else
+		TMPL="$TMPL_DIR/.changelog.md"
+	fi
+
 	local start="${1}"
 	local finish="${2}"
 	local outFile="${3}"
-	local template="${4:-${TMPL_DIR}/changelog.md}"
+	local template="${4:-$TMPL}"
 	local active=0 LF="\n"
 	local OUTPUT=""
 
