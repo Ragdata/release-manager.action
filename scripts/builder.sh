@@ -32,7 +32,7 @@ bld::changelog()
 
 		bld::parseBlock "$TMP_DIR/tmpl_header.md"
 		bld::parseBlock "$TMP_DIR/tmpl_footer.md"
-		bld::parseBlock "$TMP_DIR/tmpl_body.md"
+		#bld::parseBlock "$TMP_DIR/tmpl_body.md"
 	else
 		err::exit "Template file '$TMPL' not found"
 	fi
@@ -51,7 +51,7 @@ bld::firstlog()
 		echo "Parsing CHANGELOG template blocks ..."
 		bld::parseBlock "$TMP_DIR/tmpl_header.md"
 		bld::parseBlock "$TMP_DIR/tmpl_footer.md"
-		bld::parseBlock "$TMP_DIR/tmpl_body.md"
+		#bld::parseBlock "$TMP_DIR/tmpl_body.md"
 	else
 		err::exit "Template file '$TMPL' not found"
 	fi
@@ -86,7 +86,6 @@ bld::parseBlock()
 	do
 		NEWLINE=""
 		if [[ ${LINE,,} =~ $VAR ]]; then
-			echo "${BASH_REMATCH[0]}"
 			NEWLINE="$(bld::parseVar "$LINE" "$VAR")"
 		fi
 		if [[ -n "$OUTPUT" ]]; then
@@ -133,6 +132,7 @@ bld::parseVar()
 	while [[ "${LINE,,}" =~ $VAR ]]; do
 		tag="${BASH_REMATCH[0]}"
 		varName="${BASH_REMATCH[2]}"
+		echo "::debug::$tag"
 		if arr::hasKey CFG "$varName"; then
 			LINE="${LINE/$tag/${CFG[$varName]}}"
 		else
