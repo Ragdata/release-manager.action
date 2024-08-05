@@ -1,4 +1,3 @@
-prefix: v
 git_user:
     name: release-manager[bot]
     email: ${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com
@@ -8,7 +7,7 @@ branch:
     patch: hotfix
     release: release
 message:
-    commit: "chore(release): Auto commit"
+    commit: "build(release): Auto commit"
     release: "build(release): Release version"
 types:
     - type: build
