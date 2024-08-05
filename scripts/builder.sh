@@ -142,7 +142,6 @@ bld::parseVar()
 	while [[ "${LINE,,}" =~ $VAR ]]; do
 		tag="${BASH_REMATCH[0]}"
 		varName="${BASH_REMATCH[2]}"
-		echo "::debug::$tag"
 		if arr::hasKey CFG "$varName"; then
 			LINE="${LINE/$tag/${CFG[$varName]}}"
 		else
@@ -152,7 +151,11 @@ bld::parseVar()
 					LINE="${LINE/$tag/$date}"
 					;;
 				sections)
-					LINE="$(bld::parseSections)"
+					if [[ "$isFirst" ]]; then
+						LINE=""
+					else
+						LINE="$(bld::parseSections)"
+					fi
 					;;
 				*)
 					err::exit "Variable '$varName' not found"
