@@ -14,13 +14,6 @@
 ####################################################################
 # CORE FUNCTIONS
 ####################################################################
-rm::createTag()
-{
-	echo "Checking existance of release tag ..."
-
-	$(arr::hasValue "${RELEASE_VERSION['full']}" "${TAGS[@]}") && err::exit "Tag '${RELEASE_VERSION['full']}' already exists"
-}
-
 rm::parseVersion()
 {
 	local ver="${1:-0.0.0}"
