@@ -14,6 +14,60 @@
 ####################################################################
 # CORE FUNCTIONS
 ####################################################################
+rm::getReleaseVersion()
+{
+	local p="" v="" s="" b="" d
+
+	$INPUT_PRE_RELEASE && s="-alpha"
+
+	case "$INPUT_TYPE" in
+		auto)
+			if [[ "$isFirst" ]]; then
+				[[ -n "${CURRENT_VERSION['prefix']}" ]] && p="${CURRENT_VERSION['prefix']}"
+				v="${CURRENT_VERSION['version']}"
+			else
+				if [[ -n "${LATEST_REPO_TAG['prefix']}" ]] && [[ ! $INPUT_PRE_RELEASE ]]; then
+					v="${LATEST_REPO_TAG['version']}"
+				elif [[ -n "${LATEST_REPO_TAG['prefix']}" ]] && $INPUT_PRE_RELEASE; then
+					err::exit "Cannot auto-increment pre-release to pre-release versions"
+				else
+					d="${LATEST_REPO_TAG['minor']}"
+					((d+=1))
+					v="${LATEST_REPO_TAG['major']}.$d.0"
+				fi
+			fi
+			;;
+		version)
+			[[ -n "${IN_VERSION['prefix']}" ]] && p="${IN_VERSION['prefix']}"
+			v="${IN_VERSION['version']}"
+			[[ -n "${IN_VERSION['suffix']}" ]] && s="${IN_VERSION['suffix']}"
+			[[ -n "${IN_VERSION['build']}" ]] && b="${IN_VERSION['build']}"
+			;;
+		patch|minor|major)
+			[[ -n "${LATEST_REPO_TAG['prefix']}" ]] && p="${LATEST_REPO_TAG['prefix']}"
+			case "$INPUT_TYPE" in
+				patch)
+					d="${LATEST_REPO_TAG['patch']}"
+					((d+=1))
+					v="${LATEST_REPO_TAG['major']}.${LATEST_REPO_TAG['minor']}.$d"
+					;;
+				minor)
+					d="${LATEST_REPO_TAG['minor']}"
+					((d+=1))
+					v="${LATEST_REPO_TAG['major']}.$d.0"
+					;;
+				major)
+					d="${LATEST_REPO_TAG['major']}"
+					((d+=1))
+					v="$d.0.0"
+					;;
+			esac
+			;;
+	esac
+
+	echo "$p$v$s$b"
+}
+
 rm::parseVersion()
 {
 	local ver="${1:-0.0.0}"

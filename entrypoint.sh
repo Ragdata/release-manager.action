@@ -182,35 +182,7 @@ echo "INPUT_DRAFT = ${INPUT_DRAFT}"
 #-------------------------------------------------------------------
 echo "Get release version ..."
 
-releaseTag=""
-
-$INPUT_PRE_RELEASE && SUFFIX="-alpha"
-
-case "$INPUT_TYPE" in
-	auto)
-		;;
-	version)
-		if [[ -n "${IN_VERSION['prefix']}" ]]; then tagPrefix="${IN_VERSION['prefix']}"; else tagPrefix="$PREFIX"; fi
-		if $INPUT_PRE_RELEASE && [[ "${IN_VERSION['suffix']}" ]]; then tagSuffix="${IN_VERSION['suffix']}"; fi
-		if [[ -n "${IN_VERSION['build']}" ]]; then tagBuild="+${IN_VERSION['build']}"; fi
-		releaseTag="$tagPrefix${IN_VERSION['version']}$tagSuffix$tagBuild"
-		;;
-	patch)
-		tagDigit="${LATEST_REPO_TAG['patch']}"
-		((tagDigit+=1))
-		releaseTag="$tagPrefix${LATEST_REPO_TAG['major']}.${LATEST_REPO_TAG['minor']}.$tagDigit$tagSuffix"
-		;;
-	minor)
-		tagDigit="${LATEST_REPO_TAG['minor']}"
-		((tagDigit+=1))
-		releaseTag="$tagPrefix${LATEST_REPO_TAG['major']}.$tagDigit.0$tagSuffix"
-		;;
-	major)
-		tagDigit="${LATEST_REPO_TAG['major']}"
-		((tagDigit+=1))
-		releaseTag="$tagPrefix$tagDigit.0.0$tagSuffix"
-		;;
-esac
+releaseTag="$(rm::getReleaseVersion)"
 
 echo "Release Version: $releaseTag"
 
