@@ -166,7 +166,7 @@ esac
 
 [[ -z "$INPUT_BRANCH" ]] && INPUT_BRANCH="${GITHUB_REF_NAME}"
 
-[[ -n "$INPUT_VERSION" ]] && rm::parseVersion "$INPUT_VERSION" "IN_VERSION"
+[[ -n "$INPUT_VERSION" ]] && rm::parseVersion "$INPUT_VERSION" IN_VERSION
 
 echo "INPUT_VERSION = ${INPUT_VERSION}"
 echo "INPUT_TYPE = ${INPUT_TYPE}"
@@ -304,7 +304,7 @@ fi
 # Update release config
 #-------------------------------------------------------------------
 echo "Updating release config file"
-rt="$releaseTag" yq -i 'version = strenv(rt)' "$GITHUB_WORKSPACE/.release.yml"
+yq -i ".version = $releaseTag" "$GITHUB_WORKSPACE/.release.yml"
 
 #-------------------------------------------------------------------
 # Add / Commit files
