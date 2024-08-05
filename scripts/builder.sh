@@ -80,7 +80,7 @@ bld::parseBlock()
 	local OPEN=$(regex::OPEN)
 	local CLOSE=$(regex::CLOSE)
 	local VAR=$(regex::VAR)
-	local OUTPUT
+	local OUTPUT=""
 
 	while IFS= read -r LINE
 	do
@@ -100,7 +100,7 @@ bld::parseTemplateBlock()
 	local outFile="${3}"
 	local template="${4:-${TMPL_DIR}/changelog.md}"
 	local active=0 LF="\n"
-	local OUTPUT
+	local OUTPUT=""
 
 	while IFS= read -r LINE
 	do
