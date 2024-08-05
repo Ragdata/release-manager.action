@@ -80,13 +80,19 @@ bld::parseBlock()
 	local OPEN=$(regex::OPEN)
 	local CLOSE=$(regex::CLOSE)
 	local VAR=$(regex::VAR)
-	local OUTPUT=""
+	local OUTPUT="" LF="\n" NEWLINE
 
 	while IFS= read -r LINE
 	do
+		NEWLINE=""
 		if [[ ${LINE,,} =~ $VAR ]]; then
 			echo "${BASH_REMATCH[0]}"
-			OUTPUT="$(bld::parseVar "$LINE" "$VAR")"
+			NEWLINE="$(bld::parseVar "$LINE" "$VAR")"
+		fi
+		if [[ -n "$OUTPUT" ]]; then
+			OUTPUT="$OUTPUT$LF$NEWLINE"
+		else
+			OUTPUT="$NEWLINE"
 		fi
 	done < "$fileName"
 
@@ -130,7 +136,14 @@ bld::parseVar()
 		if arr::hasKey CFG "$varName"; then
 			LINE="${LINE/$tag/${CFG[$varName]}}"
 		else
-			err::exit "Variable '$varName' not found"
+			case "$varName" in
+				date)
+					date="$(date '+%d %b %Y')"
+					;;
+				*)
+					err::exit "Variable '$varName' not found"
+					;;
+			esac
 		fi
 	done
 
