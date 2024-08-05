@@ -10,7 +10,7 @@ See the [Contributor's Guidelines](https://github.com/Ragdata/.github/blob/maste
 
 ## [{{ release_version }}]({{ release_url }}) ({{ release_date }})
 
-{{ project_description }}
+{{ description }}
 
 {{ /doc body }}
 {{ #doc footer }}
