@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2034
 # shellcheck disable=SC2091
+# shellcheck disable=SC2154
 # shellcheck disable=SC2155
 # ###################################################################
 # builder.sh
@@ -17,21 +18,15 @@
 ####################################################################
 bld::changelog()
 {
-	if [[ -f "$GITHUB_WORKSPACE/.github/.changelog.md" ]]; then
-		TMPL="$GITHUB_WORKSPACE/.github/.changelog.md"
-	else
-		TMPL="$TMPL_DIR/.changelog.md"
-	fi
-
-	if [[ -f "$TMPL" ]]; then
+	if [[ -f "$TMPL_LOG" ]]; then
 		bld::parseTemplateBlock "{{ #doc header }}" "{{ /doc header }}" "$TMP_DIR/tmpl_header.md"
 		bld::parseTemplateBlock "{{ #doc footer }}" "{{ /doc footer }}" "$TMP_DIR/tmpl_footer.md"
 		bld::parseTemplateBlock "{{ #doc releases }}" "{{ /doc releases }}" "$TMP_DIR/tmpl_releases.md"
 		bld::parseTemplateBlock "{{ #doc sections }}" "{{ /doc sections }}" "$TMP_DIR/tmpl_sections.md"
 		bld::parseTemplateBlock "{{ #doc commits }}" "{{ /doc commits }}" "$TMP_DIR/tmpl_commits.md"
 
-		if [[ -f "$GITHUB_WORKSPACE/CHANGELOG.md" ]]; then
-			TMPL_CONTENT=$(bld::parseTemplateBlock "[//]: # (START)" "[//]: # (END)" "$TMP_DIR/tmpl_changelog.md" "$GITHUB_WORKSPACE/CHANGELOG.md")
+		if [[ -f "$logFile" ]]; then
+			TMPL_CONTENT=$(bld::parseTemplateBlock "[//]: # (START)" "[//]: # (END)" "$TMP_DIR/tmpl_changelog.md" "$logFile")
 		else
 			TMPL_CONTENT=""
 		fi
@@ -40,23 +35,23 @@ bld::changelog()
 		bld::parseBlock "$TMP_DIR/tmpl_footer.md"
 		bld::parseBlock "$TMP_DIR/tmpl_releases.md"
 	else
-		err::exit "Template file '$TMPL' not found"
+		err::exit "Template file '$TMPL_LOG' not found"
 	fi
 
 	echo "Writing CHANGELOG"
 
-	if [[ -f "$GITHUB_WORKSPACE/CHANGELOG.md" ]]; then
-		echo -n > "$GITHUB_WORKSPACE/CHANGELOG.md"
+	if [[ -f "$logFile" ]]; then
+		echo -n > "$logFile"
 	else
-		touch "$GITHUB_WORKSPACE/CHANGELOG.md"
+		touch "$logFile"
 	fi
 
-	[[ -f "$TMP_DIR/tmpl_header.md" ]] && cat "$TMP_DIR/tmpl_header.md" >> "$GITHUB_WORKSPACE/CHANGELOG.md"
-	echo -e "[//]: # (START)" >> "$GITHUB_WORKSPACE/CHANGELOG.md"
-	[[ -f "$TMP_DIR/tmpl_releases.md" ]] && cat "$TMP_DIR/tmpl_releases.md" >> "$GITHUB_WORKSPACE/CHANGELOG.md"
-	[[ -f "$TMP_DIR/tmpl_changelog.md" ]] && cat "$TMP_DIR/tmpl_changelog.md" >> "$GITHUB_WORKSPACE/CHANGELOG.md"
-	echo -e "[//]: # (END)" >> "$GITHUB_WORKSPACE/CHANGELOG.md"
-	[[ -f "$TMP_DIR/tmpl_footer.md" ]] && cat "$TMP_DIR/tmpl_footer.md" >> "$GITHUB_WORKSPACE/CHANGELOG.md"
+	[[ -f "$TMP_DIR/tmpl_header.md" ]] && cat "$TMP_DIR/tmpl_header.md" >> "$logFile"
+	echo -e "[//]: # (START)" >> "$logFile"
+	[[ -f "$TMP_DIR/tmpl_releases.md" ]] && cat "$TMP_DIR/tmpl_releases.md" >> "$logFile"
+	[[ -f "$TMP_DIR/tmpl_changelog.md" ]] && cat "$TMP_DIR/tmpl_changelog.md" >> "$logFile"
+	echo -e "[//]: # (END)" >> "$logFile"
+	[[ -f "$TMP_DIR/tmpl_footer.md" ]] && cat "$TMP_DIR/tmpl_footer.md" >> "$logFile"
 }
 
 bld::parseBlock()
@@ -81,6 +76,8 @@ bld::parseBlock()
 		NEWLINE=""
 		if [[ ${LINE,,} =~ $VAR ]]; then
 			NEWLINE="$(bld::parseVar "$LINE" "$VAR")"
+		else
+			NEWLINE="$LINE"
 		fi
 		if [[ -n "$OUTPUT" ]]; then
 			OUTPUT="$OUTPUT$LF$NEWLINE"
@@ -104,16 +101,10 @@ bld::parseSections()
 
 bld::parseTemplateBlock()
 {
-	if [[ -f "$GITHUB_WORKSPACE/.github/.changelog.md" ]]; then
-		TMPL="$GITHUB_WORKSPACE/.github/.changelog.md"
-	else
-		TMPL="$TMPL_DIR/.changelog.md"
-	fi
-
 	local start="${1}"
 	local finish="${2}"
 	local outFile="${3}"
-	local template="${4:-$TMPL}"
+	local template="${4:-$TMPL_LOG}"
 	local active=0 LF="\n"
 	local OUTPUT=""
 

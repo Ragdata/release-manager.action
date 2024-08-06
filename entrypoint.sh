@@ -45,101 +45,93 @@ source /usr/local/bin/scripts/ghapi.sh || { echo "::error::Unable to load depend
 ####################################################################
 echo "::group::📑 Configuring Release Manager"
 
-##-------------------------------------------------------------------
-## Get latest git tag
-##-------------------------------------------------------------------
-#echo "Querying git for latest tag ..."
-#
-#latestTag="$(git tag -l --sort=version:refname | head -n 1)"
-#
-#if [[ -n "$latestTag" ]]; then
-#	rm::parseVersion "$latestTag" LATEST_TAG
-#else
-#	rm::parseVersion "0.0.0" LATEST_TAG
-#fi
-#
-#debug1="$(declare -p LATEST_TAG)"; echo "::debug::$debug1"
-
 #-------------------------------------------------------------------
-# Get latest release tag
+# REPOSITORY
 #-------------------------------------------------------------------
-echo "Querying GitHub for latest release tag ..."
+echo "Querying GitHub API for repository data"
 
-result=$(gh::latestRelease)
-
-RESPONSE['code']=$(tail -n1 <<< "$result")
-RESPONSE['body']=$(sed '$ d' <<< "$result")
-
-echo "::debug::HTTP STATUS = ${RESPONSE['code']}"
-
-case "${RESPONSE['code']}" in
-	200)
-		echo "${RESPONSE['body']}" | yq 'has("tag_name")' - && rm::parseVersion "$(echo "${RESPONSE['body']}" | yq '.tag_name' -)" "LATEST_REPO_TAG"
-		;;
-	404)
-		rm::parseVersion "0.0.0" LATEST_REPO_TAG
-		isFirst=true
-		;;
-	*)
-		err::exit "GitHub API returned status code ${RESPONSE['code']}"
-		;;
-esac
-
+rm::getRepository REPO
 #-------------------------------------------------------------------
-# Look for current version in config
+# RELEASES
 #-------------------------------------------------------------------
-echo "Querying configuration file for current version ..."
+echo "Querying GitHub API for latest releases"
 
-if [[ -f "$cfgFile" ]]; then
-	if yq 'has("version")' "$cfgFile"; then
-		echo "Current version obtained from configuration file"
-		rm::parseVersion "$(yq '.version' "$cfgFile")" CURRENT_VERSION
-	fi
-elif [[ "${LATEST_REPO_TAG['version']}" != "0.0.0" ]]; then
-	echo "Current version obtained from GitHub Release"
-	rm::parseVersion "${LATEST_REPO_TAG['version']}" CURRENT_VERSION
+rm::getReleases RELEASES
+
+echo "Getting latest release info"
+
+if [[ "${#RELEASES[@]}" -gt 0 ]]; then
+	rm::parseVersion "$(echo "${RELEASES[0]}" | yq '.tag_name' -)" LATEST_RELEASE
 else
-	echo "Current version assigned as default first version"
-	# shellcheck disable=SC2034
-	rm::parseVersion "0.1.0" CURRENT_VERSION
+	rm::parseVersion "0.0.0" LATEST_RELEASE
+	FIRST_RELEASE=true
 fi
 
-echo "::debug::CURRENT_VERSION = ${CURRENT_VERSION['full']}"
+#-------------------------------------------------------------------
+# GET CONFIG FILES
+#-------------------------------------------------------------------
+echo "Checking configuration files"
+
+cfg::get
+
+#-------------------------------------------------------------------
+# CURRENT VERSION
+#-------------------------------------------------------------------
+echo "Determine current version"
+
+if [[ -n "$cfgFile" ]] && [[ "$cfgFile" != "$tmpFile" ]]; then
+	if yq 'has("version")' "$cfgFile"; then
+		echo "Current version obtained from config file"
+		rm::parseVersion "$(yq '.version' "$cfgFile")" CURRENT_VERSION
+	fi
+elif [[ "${LATEST_RELEASE['version']}" != "0.0.0" ]]; then
+	echo "Current version obtained from latest release"
+	rm::parseVersion "${LATEST_RELEASE['full']}" CURRENT_VERSION
+elif [[ -n "$cfgBase" ]]; then
+	if yq 'has("version")' "$cfgBase"; then
+		echo "Current version obtained from base config file"
+		rm::parseVersion "$(yq '.version' "$cfgBase")" CURRENT_VERSION
+	fi
+else
+	echo "Current version assigned as default first version"
+	rm::parseVersion "v0.1.0" CURRENT_VERSION
+fi
+
+VERSION="${CURRENT_VERSION['full']}"
+CFG['version']="$VERSION"
+
+echo "CURRENT_VERSION = $VERSION"
+
+#-------------------------------------------------------------------
+# SET / READ CONFIG FILES
+#-------------------------------------------------------------------
+echo "Setting configuration files"
+
+cfg::set
 
 #-------------------------------------------------------------------
 # Check / read config files
 #-------------------------------------------------------------------
-echo "Checking configuration files ..."
-# shellcheck disable=SC2154
-if [[ ! -f "$cfgFile" ]]; then
-	echo "Release Manager configuration file not present"
-	if [[ -f "$cfgDefault" ]]; then
-		cfgFile="$TMP_DIR/.release.yml"
-		echo "Creating temporary config file"
-		envsubst < "$cfgDefault" > "$cfgFile" || err::exit "Failed to write temporary config file"
-	else
-		err::exit "Default configuration file not found"
-	fi
-else
-	echo "Release Manager configuration file '$cfgFile' present"
-fi
+echo "Reading configuration files ..."
 
-cfg::read "$cfgFile"
+[[ -f "$cfgBase" ]] && cfg::read "$cfgBase" CFG
+[[ -f "$cfgTypes" ]] && cfg::read "$cfgTypes" CFG
+[[ -f "$cfgFile" ]] && cfg::read "$cfgFile" CFG
 
 #-------------------------------------------------------------------
 # Check git config
 #-------------------------------------------------------------------
-echo "Checking Git Config ..."
-
-if ! git config --get user.email; then
-	[[ -z "$GIT_USER_NAME" ]] && err::exit "Git username not configured"
-	[[ -z "$GIT_USER_EMAIL" ]] && err::exit "No email address configured"
-	git config --global user.name = "$GIT_USER_NAME"
-	git config --global user.email = "$GIT_USER_EMAIL"
-	echo "Git global user configuration set: $GIT_USER_NAME <$GIT_USER_EMAIL>"
-	git config --global push.autoSetupRemote true
-	echo "Git global push.autoSetupRemote set: true"
-fi
+#echo "Checking Git Config ..."
+#
+#if ! git config --get user.email; then
+#	[[ -z "$GIT_USER_NAME" ]] && err::exit "Git username not configured"
+#	[[ -z "$GIT_USER_EMAIL" ]] && err::exit "No email address configured"
+#	git config --global user.name = "$GIT_USER_NAME"
+#	git config --global user.email = "$GIT_USER_EMAIL"
+#	echo "Git global user configuration set: $GIT_USER_NAME <$GIT_USER_EMAIL>"
+#	git config --global push.autoSetupRemote true
+#	echo "Git global push.autoSetupRemote set: true"
+#fi
 
 #-------------------------------------------------------------------
 # Get input variables
@@ -213,7 +205,7 @@ rm::parseVersion "$releaseTag" "RELEASE_VERSION"
 
 CFG['release_version']="${RELEASE_VERSION['full']}"
 CFG['release_url']="https://github.com/$GITHUB_REPOSITORY/releases/tag/${RELEASE_VERSION['full']}"
-CFG['release_date']="$(date '+%b %d, %Y')"
+CFG['release_date']="$(date '+%d %b %Y')"
 if [[ "$isFirst" ]]; then CFG['release_notes']="First Release"; else CFG['release_notes']="NOTES"; fi
 
 echo "::endgroup::"

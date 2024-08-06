@@ -14,104 +14,141 @@
 ####################################################################
 # CONFIG FUNCTIONS
 ####################################################################
+cfg::get()
+{
+	#local extends types changelog release
+	local extends
+	local types logtmpl logname release pull_request
+
+	# release.yml
+	for dir in "${SEARCH_DIRS[@]}"; do
+		[[ -f "$dir/release.yml" ]] && cfgFile="$dir/release.yml"
+	done
+
+	[[ -z "$cfgFile" ]] && cfgFile="$CFG_DIR/release.yml"
+
+	# Check if main config file extends base config file
+	$(yq 'has("extends")' "$cfgFile") && extends="$(yq '.extends' "$cfgFile")"
+
+	# release.base.yml
+	if [[ -n "$extends" ]]; then
+		for dir in "${SEARCH_DIRS[@]}"; do
+			[[ -f "$dir/$extends" ]] && cfgBase="$dir/$extends"
+		done
+		[[ -z "$cfgBase" ]] && cfgBase="$CFG_DIR/release.base.yml"
+		$(yq '.standard | has("config")' "$cfgBase") && types="$(yq '.standard.config' "$cfgBase")"
+		$(yq '.changelog | has("template")' "$cfgBase") && logtmpl="$(yq '.changelog.template' "$cfgBase")"
+		$(yq '.changelog | has("file")' "$cfgBase") && logname="$(yq '.changelog.file' "$cfgBase")"
+		$(yq '.release | has("template")' "$cfgBase") && release="$(yq '.release.template' "$cfgBase")"
+		$(yq '.pull_request | has("template")' "$cfgBase") && pull_request="$(yq '.pull_request.template' "$cfgBase")"
+	fi
+
+	# Elements in main config file override elements in base config file
+	$(yq '.standard | has("config")' "$cfgFile") && types="$(yq '.standard.config' "$cfgFile")"
+	$(yq '.changelog | has("template")' "$cfgFile") && logtmpl="$(yq '.changelog.template' "$cfgFile")"
+	$(yq '.changelog | has("file")' "$cfgFile") && logname="$(yq '.changelog.file' "$cfgFile")"
+	$(yq '.release | has("template")' "$cfgFile") && release="$(yq '.release.template' "$cfgFile")"
+	$(yq '.pull_request | has("template")' "$cfgFile") && pull_request="$(yq '.pull_request.template' "$cfgFile")"
+
+	# Set to default filename if still empty
+	[[ -z "$types" ]] && types="types.conventional.yml"
+	[[ -z "$logtmpl" ]] && logtmpl="changelog.md"
+	[[ -z "$logname" ]] && logname="CHANGELOG.md"
+	[[ -z "$release" ]] && release="release.md"
+	[[ -z "$pull_request" ]] && pull_request="pull_request.md"
+
+	# remainder
+	for dir in "${SEARCH_DIRS[@]}"; do
+		[[ -f "$dir/$types" ]] && cfgTypes="$dir/$types"
+		[[ -f "$dir/$logtmpl" ]] && logTmpl="$dir/$logtmpl"
+		[[ -f "$dir/$release" ]] && relTmpl="$dir/$release"
+		[[ -f "$dir/$pull_request" ]] && pullTmpl="$dir/$pull_request"
+	done
+
+	[[ -z "$logFile" ]] && logFile="$GITHUB_WORKSPACE/$logname"
+
+	# Set to default path if still empty
+	[[ -z "$cfgTypes" ]] && cfgTypes="$CFG_DIR/types.conventional.yml"
+	[[ -z "$logTmpl" ]] && logTmpl="$CFG_DIR/changelog.md"
+	[[ -z "$logFile" ]] && logFile="$GITHUB_WORKSPACE/CHANGELOG.md"
+	[[ -z "$relTmpl" ]] && relTmpl="$CFG_DIR/release.md"
+	[[ -z "$pullTmpl" ]] && pullTmpl="$CFG_DIR/pull_request.md"
+}
+
+cfg::set()
+{
+	# If we're STILL using the default configuration files
+	# replace values in each file and save to temp dir
+	if [[ "$cfgFile" == "$CFG_DIR/release.yml" ]]; then
+		echo "Creating temporary config file"
+		tmpFile="$TMP_DIR/release.yml"
+		envsubst < "$cfgFile" > "$tmpFile" || err::exit "Failed to write temporary config file '$tmpFile'"
+		cfgFile="$tmpFile"
+	fi
+	if [[ "$cfgBase" == "$CFG_DIR/release.base.yml" ]]; then
+		echo "Creating temporary base config file"
+		tmpBase="$TMP_DIR/release.base.yml"
+		envsubst < "$cfgBase" > "$tmpBase" || err::exit "Failed to write temporary base config file '$tmpBase'"
+		cfgBase="$tmpBase"
+	fi
+}
+
 cfg::read()
 {
-	local filePath="${1:-}"
-	local extends extFilePath tmpFilePath
+	local filePath="$1"
+	local -n arr="$2"
 
 	[[ -f "$filePath" ]] || err::exit "Configuration file '$filePath' not found"
 
-	echo "Parsing Configuration Files ..."
-
-	$(yq 'has("extends")' "$filePath") && extends="$(yq '.extends' "$filePath")"
-
-	if [[ -n "$extends" ]]; then
-		extFilePath="$TMPL_DIR/$extends"
-		tmpFilePath="$TMP_DIR/$extends"
-
-		[[ -f "$extFilePath" ]] || err::exit "Base configuration file '$extFilePath' not found"
-
-		echo "Configuration file extends base config '$extFilePath'"
-
-		cfg::validate "$extFilePath"
-
-		envsubst < "$extFilePath" > "$tmpFilePath" || err::exit "Environment substitution failure"
-
-#		$(yq 'has("prefix")' "$tmpFilePath") && { PREFIX="$(yq '.prefix' "$tmpFilePath")"; CFG['prefix']="$PREFIX"; echo "::debug::PREFIX = $PREFIX"; }
-		if $(yq 'has("git_user")' "$tmpFilePath"); then
-			$(yq '.git_user | has("name")' "$tmpFilePath") && { GIT_USER_NAME="$(yq '.git_user.name' "$tmpFilePath")"; CFG['git_user.name']="$GIT_USER_NAME"; echo "::debug::GIT_USER_NAME = $GIT_USER_NAME"; }
-			$(yq '.git_user | has("email")' "$tmpFilePath") && { GIT_USER_EMAIL="$(yq '.git_user.email' "$tmpFilePath")"; CFG['git_user.email']="$GIT_USER_EMAIL"; echo "::debug::GIT_USER_EMAIL = $GIT_USER_EMAIL"; }
-		fi
-		if $(yq 'has("branch")' "$tmpFilePath"); then
-			$(yq '.branch | has("prod")' "$tmpFilePath") && { BRANCH_PROD="$(yq '.branch.prod' "$tmpFilePath")"; CFG['branch.prod']="$BRANCH_PROD"; echo "::debug::BRANCH_PROD = $BRANCH_PROD"; }
-			$(yq '.branch | has("stage")' "$tmpFilePath") && { BRANCH_STAGE="$(yq '.branch.stage' "$tmpFilePath")"; CFG['branch.stage']="$BRANCH_STAGE"; echo "::debug::BRANCH_STAGE = $BRANCH_STAGE"; }
-			$(yq '.branch | has("patch")' "$tmpFilePath") && { BRANCH_PATCH="$(yq '.branch.patch' "$tmpFilePath")"; CFG['branch.patch']="$BRANCH_PATCH"; echo "::debug::BRANCH_PATCH = $BRANCH_PATCH"; }
-			$(yq '.branch | has("release")' "$tmpFilePath") && { BRANCH_RELEASE="$(yq '.branch.release' "$tmpFilePath")"; CFG['branch.release']="$BRANCH_RELEASE"; echo "::debug::BRANCH_RELEASE = $BRANCH_RELEASE"; }
-		fi
-		if $(yq 'has("message")' "$tmpFilePath"); then
-			$(yq '.message | has("commit")' "$tmpFilePath") && { MESSAGE_COMMIT="$(yq '.message.commit' "$tmpFilePath")"; CFG['message.commit']="$MESSAGE_COMMIT"; echo "::debug::MESSAGE_COMMIT = $MESSAGE_COMMIT"; }
-			$(yq '.message | has("release")' "$tmpFilePath") && { MESSAGE_RELEASE="$(yq '.message.release' "$tmpFilePath")"; CFG['message.release']="$MESSAGE_RELEASE"; echo "::debug::MESSAGE_RELEASE = $MESSAGE_RELEASE"; }
-		fi
-		if $(yq 'has("types")' "$tmpFilePath"); then
-			# shellcheck disable=SC2034
-			readarray TYPES < <(yq -o=j -I=0 '.types[]' "$tmpFilePath")
-#			for json in "${TYPES[@]}"; do
-#				type=$(echo "$json" | yq '.type' -)
-#			done
-		fi
-		if $(yq 'has("aliases")' "$tmpFilePath"); then
-			# shellcheck disable=SC2034
-			readarray TYPE_ALIASES < <(yq -o=j -I=0 '.aliases[]' "$tmpFilePath")
-		fi
-		if $(yq 'has("logged")' "$tmpFilePath"); then
-			# shellcheck disable=SC2034
-			readarray LOGGED_TYPES < <(yq '.logged[]' "$tmpFilePath")
-		fi
-		echo "Base configuration file processed"
-	fi
+	echo "Parsing configuration file '$filePath'"
 
 	cfg::validate "$filePath"
 
-#	$(yq 'has("prefix")' "$filePath") && { PREFIX="$(yq '.prefix' "$filePath")"; CFG['prefix']="$PREFIX"; echo "::debug::PREFIX = $PREFIX"; }
-	$(yq 'has("name")' "$filePath") && { REPO_NAME="$(yq '.name' "$filePath")"; CFG['name']="$REPO_NAME"; echo "::debug::REPO_NAME = $REPO_NAME"; }
-	$(yq 'has("description")' "$filePath") && { REPO_DESC="$(yq '.description' "$filePath")"; CFG['description']="$REPO_DESC"; echo "::debug::REPO_DESC = $REPO_DESC"; }
-	$(yq 'has("repo_url")' "$filePath") && { REPO_URL="$(yq '.repo_url' "$filePath")"; CFG['repo_url']="$REPO_URL"; echo "::debug::REPO_URL = $REPO_URL"; }
-	$(yq 'has("copyright")' "$filePath") && { COPYRIGHT="$(yq '.copyright' "$filePath")"; CFG['copyright']="$COPYRIGHT"; echo "::debug::COPYRIGHT = $COPYRIGHT"; }
-	$(yq 'has("website")' "$filePath") && { WEBSITE="$(yq '.website' "$filePath")"; CFG['website']="$WEBSITE"; echo "::debug::WEBSITE = $WEBSITE"; }
-	if $(yq 'has("git_user")' "$filePath"); then
-		$(yq '.git_user | has("name")' "$filePath") && { GIT_USER_NAME="$(yq '.git_user.name' "$filePath")"; CFG['git_user.name']="$GIT_USER_NAME"; echo "::debug::GIT_USER_NAME = $GIT_USER_NAME"; }
-		$(yq '.git_user | has("email")' "$filePath") && { GIT_USER_EMAIL="$(yq '.git_user.email' "$filePath")"; CFG['git_user.email']="$GIT_USER_EMAIL"; echo "::debug::GIT_USER_EMAIL = $GIT_USER_EMAIL"; }
-	fi
+	$(yq 'has("name")' "$filePath") && { arr['name']="$(yq '.name' "$filePath")"; echo "::debug::.name = ${arr['name']}"; }
+	$(yq 'has("description")' "$filePath") && { arr['description']="$(yq '.description' "$filePath")"; echo "::debug::.description = ${arr['description']}"; }
+	$(yq 'has("website")' "$filePath") && { arr['website']="$(yq '.website' "$filePath")"; echo "::debug::.website = ${arr['website']}"; }
+	$(yq 'has("repo_url")' "$filePath") && { arr['repo_url']="$(yq '.repo_url' "$filePath")"; echo "::debug::.repo_url = ${arr['repo_url']}"; }
 	if $(yq 'has("authors")' "$filePath"); then
-		# shellcheck disable=SC2034
-		readarray AUTHORS < <(yq -o=j -I=0 '.authors[]' "$filePath")
+		yq -o=j -I4 '.authors' "$filePath" > "$TMP_DIR/authors.json"
+	fi
+	if $(yq 'has("git_user")' "$filePath"); then
+		$(yq '.git_user | has("name")' "$filePath") && { arr['git_user.name']="$(yq '.git_user.name' "$filePath")"; echo "::debug::.git_user.name = ${arr['git_user.name']}"; }
+		$(yq '.git_user | has("email")' "$filePath") && { arr['git_user.email']="$(yq '.git_user.email' "$filePath")"; echo "::debug::.git_user.email = ${arr['git_user.email']}"; }
 	fi
 	if $(yq 'has("branch")' "$filePath"); then
-		$(yq '.branch | has("prod")' "$filePath") && { BRANCH_PROD="$(yq '.branch.prod' "$filePath")"; CFG['branch.prod']="$BRANCH_PROD"; echo "::debug::BRANCH_PROD = $BRANCH_PROD"; }
-		$(yq '.branch | has("stage")' "$filePath") && { BRANCH_STAGE="$(yq '.branch.stage' "$filePath")"; CFG['branch.stage']="$BRANCH_STAGE"; echo "::debug::BRANCH_STAGE = $BRANCH_STAGE"; }
-		$(yq '.branch | has("patch")' "$filePath") && { BRANCH_PATCH="$(yq '.branch.patch' "$filePath")"; CFG['branch.patch']="$BRANCH_PATCH"; echo "::debug::BRANCH_PATCH = $BRANCH_PATCH"; }
-		$(yq '.branch | has("release")' "$filePath") && { BRANCH_RELEASE="$(yq '.branch.release' "$filePath")"; CFG['branch.release']="$BRANCH_RELEASE"; echo "::debug::BRANCH_RELEASE = $BRANCH_RELEASE"; }
+		$(yq '.branch | has("prod")' "$filePath") && { arr['branch.prod']="$(yq '.branch.prod' "$filePath")"; echo "::debug::.branch.prod = ${arr['branch.prod']}"; }
+		$(yq '.branch | has("stage")' "$filePath") && { arr['branch.stage']="$(yq '.branch.stage' "$filePath")"; echo "::debug::.branch.stage = ${arr['branch.stage']}"; }
+		$(yq '.branch | has("patch")' "$filePath") && { arr['branch.patch']="$(yq '.branch.patch' "$filePath")"; echo "::debug::.branch.patch = ${arr['branch.patch']}"; }
+		$(yq '.branch | has("release")' "$filePath") && { arr['branch.release']="$(yq '.branch.release' "$filePath")"; echo "::debug::.branch.release = ${arr['branch.release']}"; }
 	fi
 	if $(yq 'has("message")' "$filePath"); then
-		$(yq '.message | has("commit")' "$filePath") && { MESSAGE_COMMIT="$(yq '.message.commit' "$filePath")"; CFG['message.commit']="$MESSAGE_COMMIT"; echo "::debug::MESSAGE_COMMIT = $MESSAGE_COMMIT"; }
-		$(yq '.message | has("release")' "$filePath") && { MESSAGE_RELEASE="$(yq '.message.release' "$filePath")"; CFG['message.release']="$MESSAGE_RELEASE"; echo "::debug::MESSAGE_RELEASE = $MESSAGE_RELEASE"; }
+		$(yq '.message | has("commit")' "$filePath") && { arr['message.commit']="$(yq '.message.commit' "$filePath")"; echo "::debug::.message.commit = ${arr['message.commit']}"; }
+		$(yq '.message | has("release")' "$filePath") && { arr['message.release']="$(yq '.message.release' "$filePath")"; echo "::debug::.message.release = ${arr['message.release']}"; }
 	fi
-	if $(yq 'has("types")' "$filePath"); then
-		# shellcheck disable=SC2034
-		readarray TYPES < <(yq -o=j -I=0 '.types[]' "$filePath")
+	if $(yq 'has("changelog")' "$filePath"); then
+		$(yq '.changelog | has("template")' "$filePath") && { arr['changelog.template']="$(yq '.changelog.template' "$filePath")"; echo "::debug::.changelog.template = ${arr['changelog.template']}"; }
+		$(yq '.changelog | has("file")' "$filePath") && { arr['changelog.file']="$(yq '.changelog.file' "$filePath")"; echo "::debug::.changelog.file = ${arr['changelog.file']}"; }
+		$(yq '.changelog | has("create")' "$filePath") && { arr['changelog.create']="$(yq '.changelog.create' "$filePath")"; echo "::debug::.changelog.create = ${arr['changelog.create']}"; }
 	fi
-	if $(yq 'has("aliases")' "$filePath"); then
-		# shellcheck disable=SC2034
-		readarray TYPE_ALIASES < <(yq -o=j -I=0 '.aliases[]' "$filePath")
+	if $(yq 'has("release")' "$filePath"); then
+		$(yq '.release | has("template")' "$filePath") && { arr['release.template']="$(yq '.release.template' "$filePath")"; echo "::debug::.release.template = ${arr['release.template']}"; }
+		$(yq '.release | has("create")' "$filePath") && { arr['release.create']="$(yq '.release.create' "$filePath")"; echo "::debug::.release.create = ${arr['release.create']}"; }
 	fi
-	if $(yq 'has("logged")' "$filePath"); then
-		# shellcheck disable=SC2034
-		readarray LOGGED_TYPES < <(yq '.logged[]' "$filePath")
+	if $(yq 'has("pull_request")' "$filePath"); then
+		$(yq '.pull_request | has("template")' "$filePath") && { arr['pull_request.template']="$(yq '.pull_request.template' "$filePath")"; echo "::debug::.pull_request.template = ${arr['pull_request.template']}"; }
+		$(yq '.pull_request | has("create")' "$filePath") && { arr['pull_request.create']="$(yq '.pull_request.create' "$filePath")"; echo "::debug::.pull_request.create = ${arr['pull_request.create']}"; }
 	fi
-	$(yq 'has("release")' "$filePath") && { RELEASE="$(yq '.release' "$filePath")"; CFG['release']="$RELEASE"; echo "::debug::RELEASE = $RELEASE"; }
-	$(yq 'has("changelog")' "$filePath") && { CHANGELOG="$(yq '.changelog' "$filePath")"; CFG['changelog']="$CHANGELOG"; echo "::debug::CHANGELOG = $CHANGELOG"; }
 
-	echo "Release Manager configuration file processed"
+	$(yq 'has("standard_name")' "$filePath") && { arr['standard_name']="$(yq '.standard_name' "$filePath")"; echo "::debug::.standard_name = ${arr['standard_name']}"; }
+	$(yq 'has("standard_url")' "$filePath") && { arr['standard_url']="$(yq '.standard_url' "$filePath")"; echo "::debug::.standard_url = ${arr['standard_url']}"; }
+	$(yq 'has("standard_regex")' "$filePath") && { arr['standard_regex']="$(yq '.standard_regex' "$filePath")"; echo "::debug::.standard_regex = ${arr['standard_regex']}"; }
+	if $(yq 'has("commit_types")' "$filePath"); then
+		yq -o=j -I4 '.commit_types' "$filePath" > "$TMP_DIR/commit_types.json"
+	fi
+	if $(yq 'has("logged_types")' "$filePath"); then
+		# shellcheck disable=SC2034
+		readarray LOGGED_TYPES < <(yq '.logged_types[]' "$filePath")
+	fi
 }
 
 cfg::validate()
