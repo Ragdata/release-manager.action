@@ -1,0 +1,40 @@
+extends: release.base.yml
+name: ${REPO_NAME}
+description: ${REPO_DESC}
+version: ${VERSION}
+# copyright:
+# website:
+repo_url: ${REPO_URL}
+authors:
+    - username: ${OWNER_LOGIN}
+      # first_name:
+      # surname:
+      email: ${OWNER_ID}+${OWNER_LOGIN}@users.noreply.github.com
+      location: ${OWNER_LOCATION}
+      affiliation: ${OWNER_COMPANY}
+      blog: ${OWNER_BLOG}
+      twitter: ${OWNER_TWITTER}
+# git_user:
+#     name:
+#     email:
+# branch:
+#     prod:
+#     stage:
+#     patch:
+#     release:
+# message:
+#     commit:
+#     release:
+changelog:
+    template: changelog.md
+    file: CHANGELOG.md
+    create: true
+release:
+    template: release.md
+    create: true
+pull_request:
+    template: pull_request.md
+    create: true
+# standard:
+#     config:
+# logged_types:

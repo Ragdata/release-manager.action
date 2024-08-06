@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 
 {{ /doc header }}
 {{ #doc releases }}
-## [{{ release_version }}]({{ release_url }}) ({{ release_date }})
+## [{{ release_version }}]({{ release_url }}) <small>({{ release_date }})</small>
 
 {{ release_notes }}
 
@@ -24,5 +24,5 @@ All notable changes to this project will be documented in this file.
 {{ /doc commits }}
 {{ #doc footer }}
 
-Changelog last updated on {{ date }} for [{{ name }}]({{ repo_url }}) by [Ragdata's Release Manager](https://github.com/ragdata/release-manager.action)
+<small>Changelog last updated on **{{ date }}** for [**{{ name }}**]({{ repo_url }}) by [Ragdata's Release Manager](https://github.com/ragdata/release-manager.action)</small>
 {{ /doc footer }}
