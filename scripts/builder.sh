@@ -142,7 +142,7 @@ bld::parseVar()
 					LINE="${LINE/$tag/$date}"
 					;;
 				sections)
-					if [[ "$isFirst" ]]; then
+					if [[ "$FIRST_RELEASE" ]]; then
 						LINE=""
 					else
 						LINE="$(bld::parseSections)"

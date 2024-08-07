@@ -18,7 +18,7 @@ cfg::get()
 {
 	#local extends types changelog release
 	local extends
-	local types logtmpl logname release pull_request
+	local types changelog_template changelog_file release_template pull_request_template
 
 	# release.yml
 	for dir in "${SEARCH_DIRS[@]}"; do
@@ -37,38 +37,40 @@ cfg::get()
 		done
 		[[ -z "$cfgBase" ]] && cfgBase="$CFG_DIR/release.base.yml"
 		$(yq '.standard | has("config")' "$cfgBase") && types="$(yq '.standard.config' "$cfgBase")"
-		$(yq '.changelog | has("template")' "$cfgBase") && logtmpl="$(yq '.changelog.template' "$cfgBase")"
-		$(yq '.changelog | has("file")' "$cfgBase") && logname="$(yq '.changelog.file' "$cfgBase")"
-		$(yq '.release | has("template")' "$cfgBase") && release="$(yq '.release.template' "$cfgBase")"
-		$(yq '.pull_request | has("template")' "$cfgBase") && pull_request="$(yq '.pull_request.template' "$cfgBase")"
+		$(yq '.changelog | has("template")' "$cfgBase") && changelog_template="$(yq '.changelog.template' "$cfgBase")"
+		$(yq '.changelog | has("file")' "$cfgBase") && changelog_file="$(yq '.changelog.file' "$cfgBase")"
+		$(yq '.release | has("template")' "$cfgBase") && release_template="$(yq '.release.template' "$cfgBase")"
+		$(yq '.pull_request | has("template")' "$cfgBase") && pull_request_template="$(yq '.pull_request.template' "$cfgBase")"
 	fi
 
 	# Elements in main config file override elements in base config file
 	$(yq '.standard | has("config")' "$cfgFile") && types="$(yq '.standard.config' "$cfgFile")"
-	$(yq '.changelog | has("template")' "$cfgFile") && logtmpl="$(yq '.changelog.template' "$cfgFile")"
-	$(yq '.changelog | has("file")' "$cfgFile") && logname="$(yq '.changelog.file' "$cfgFile")"
-	$(yq '.release | has("template")' "$cfgFile") && release="$(yq '.release.template' "$cfgFile")"
-	$(yq '.pull_request | has("template")' "$cfgFile") && pull_request="$(yq '.pull_request.template' "$cfgFile")"
+	$(yq '.changelog | has("template")' "$cfgFile") && changelog_template="$(yq '.changelog.template' "$cfgFile")"
+	$(yq '.changelog | has("file")' "$cfgFile") && changelog_file="$(yq '.changelog.file' "$cfgFile")"
+	$(yq '.release | has("template")' "$cfgFile") && release_template="$(yq '.release.template' "$cfgFile")"
+	$(yq '.pull_request | has("template")' "$cfgFile") && pull_request_template="$(yq '.pull_request.template' "$cfgFile")"
 
 	# Set to default filename if still empty
 	[[ -z "$types" ]] && types="types.conventional.yml"
-	[[ -z "$logtmpl" ]] && logtmpl="changelog.md"
-	[[ -z "$logname" ]] && logname="CHANGELOG.md"
-	[[ -z "$release" ]] && release="release.md"
-	[[ -z "$pull_request" ]] && pull_request="pull_request.md"
+	[[ -z "$changelog_template" ]] && changelog_template="changelog.md"
+	[[ -z "$changelog_file" ]] && changelog_file="CHANGELOG.md"
+	[[ -z "$release" ]] && release_template="release.md"
+	[[ -z "$pull_request" ]] && pull_request_template="pull_request.md"
 
 	# remainder
 	for dir in "${SEARCH_DIRS[@]}"; do
 		[[ -f "$dir/$types" ]] && cfgTypes="$dir/$types"
-		[[ -f "$dir/$logtmpl" ]] && logTmpl="$dir/$logtmpl"
-		[[ -f "$dir/$release" ]] && relTmpl="$dir/$release"
-		[[ -f "$dir/$pull_request" ]] && pullTmpl="$dir/$pull_request"
+		[[ -f "$dir/$changelog_template" ]] && logTmpl="$dir/$changelog_template"
+		[[ -f "$dir/$release_template" ]] && relTmpl="$dir/$release_template"
+		[[ -f "$dir/$pull_request_template" ]] && pullTmpl="$dir/$pull_request_template"
 	done
 
-	[[ -z "$logFile" ]] && logFile="$GITHUB_WORKSPACE/$logname"
+	[[ -z "$logFile" ]] && logFile="$GITHUB_WORKSPACE/$changelog_file"
 
 	# Set to default path if still empty
 	[[ -z "$cfgTypes" ]] && cfgTypes="$CFG_DIR/types.conventional.yml"
+	[[ -z "$cfgDefault" ]] && cfgDefault="$CFG_DIR/release.yml"
+	[[ -z "$cfgDefaultBase" ]] && cfgDefaultBase="$CFG_DIR/release.base.yml"
 	[[ -z "$logTmpl" ]] && logTmpl="$CFG_DIR/changelog.md"
 	[[ -z "$logFile" ]] && logFile="$GITHUB_WORKSPACE/CHANGELOG.md"
 	[[ -z "$relTmpl" ]] && relTmpl="$CFG_DIR/release.md"
@@ -121,6 +123,11 @@ cfg::read()
 		$(yq '.branch | has("patch")' "$filePath") && { arr['branch.patch']="$(yq '.branch.patch' "$filePath")"; echo "::debug::.branch.patch = ${arr['branch.patch']}"; }
 		$(yq '.branch | has("release")' "$filePath") && { arr['branch.release']="$(yq '.branch.release' "$filePath")"; echo "::debug::.branch.release = ${arr['branch.release']}"; }
 	fi
+	if $(yq 'has("date_format")' "$filePath"); then
+		$(yq '.date_format | has("short")' "$filePath") && { arr['date_format.short']="$(yq '.date_format.short' "$filePath")"; echo "::debug::.date_format.short = ${arr['date_format.short']}"; }
+		$(yq '.date_format | has("long")' "$filePath") && { arr['date_format.long']="$(yq '.date_format.long' "$filePath")"; echo "::debug::.date_format.long = ${arr['date_format.long']}"; }
+		$(yq '.date_format | has("dtg")' "$filePath") && { arr['date_format.dtg']="$(yq '.date_format.dtg' "$filePath")"; echo "::debug::.date_format.dtg = ${arr['date_format.dtg']}"; }
+	fi
 	if $(yq 'has("message")' "$filePath"); then
 		$(yq '.message | has("commit")' "$filePath") && { arr['message.commit']="$(yq '.message.commit' "$filePath")"; echo "::debug::.message.commit = ${arr['message.commit']}"; }
 		$(yq '.message | has("release")' "$filePath") && { arr['message.release']="$(yq '.message.release' "$filePath")"; echo "::debug::.message.release = ${arr['message.release']}"; }
@@ -157,4 +164,46 @@ cfg::validate()
 	[[ -f "${1}" ]] || err::exit "Configuration Filepath '${1}' Not Found!"
 	$(yq --exit-status 'tag == "!!map" or tag == "!!seq"' "${1}") || err::exit "Invalid Configuration File '${1}'"
 	echo "::debug::Configuration File '${1}' Validated"
+}
+
+cfg::write()
+{
+	if [[ ! -f "${SEARCH_DIRS[0]}/release.yml" ]] && [[ ! -f "${SEARCH_DIRS[1]}/release.yml" ]]; then
+		echo "Creating config file 'release.yml' for repository"
+		# Check for existing temp file
+		if [[ -f "$TMP_DIR/release.yml" ]]; then
+			cp "$TMP_DIR/release.yml" "${SEARCH_DIRS[0]}/release.yml" || err::exit "Unable to copy config file from '$TMP_DIR/release.yml' to '${SEARCH_DIRS[0]}/release.yml'"
+		else
+			if [[ -f "$cfgDefault" ]]; then
+				envsubst < "$cfgDefault" > "${SEARCH_DIRS[0]}/release.yml" || err::exit "Unable to write config file '${SEARCH_DIRS[0]}/release.yml'"
+			else
+				err::exit "Unable to find default configuration file"
+			fi
+		fi
+	fi
+	if [[ ! -f "${SEARCH_DIRS[0]}/release.base.yml" ]] && [[ ! -f "${SEARCH_DIRS[1]}/release.base.yml" ]] && [[ "${cfgBase##*/}" == "release.base.yml" ]]; then
+		echo "Creating config file 'release.base.yml' for repository"
+		# Check existing temp file
+		if [[ -f "$TMP_DIR/release.base.yml" ]]; then
+			cp "$TMP_DIR/release.base.yml" "${SEARCH_DIRS[1]}/release.base.yml" || err::exit "Unable to copy config file from '$TMP_DIR/release.base.yml' to '${SEARCH_DIRS[1]}/release.base.yml'"
+		else
+			envsubst < "$cfgDefault" > "${SEARCH_DIRS[1]}/release.base.yml" || err::exit "Unable to write config file '${SEARCH_DIRS[1]}/release.base.yml'"
+		fi
+	fi
+	if [[ ! -f "${SEARCH_DIRS[0]}/types.conventional.yml" ]] && [[ ! -f "${SEARCH_DIRS[1]}/types.conventional.yml" ]] && [[ "${cfgTypes##*/}" == "types.conventional.yml" ]]; then
+		echo "Creating config file 'types.conventional.yml' for repository"
+		cp "$CFG_DIR/types.conventional.yml" "${SEARCH_DIRS[1]}/types.conventional.yml" || err::exit "Unable to write config file '${SEARCH_DIRS[1]}/types.conventional.yml'"
+	fi
+	if [[ ! -f "${SEARCH_DIRS[0]}/changelog.md" ]] && [[ ! -f "${SEARCH_DIRS[1]}/changelog.md" ]] && [[ "${logTmpl##*/}" == "changelog.md" ]]; then
+		echo "Creating config file 'changelog.md' for repository"
+		cp "$CFG_DIR/changelog.md" "${SEARCH_DIRS[1]}/changelog.md" || err::exit "Unable to write config file '${SEARCH_DIRS[1]}/changelog.md'"
+	fi
+	if [[ ! -f "${SEARCH_DIRS[0]}/release.md" ]] && [[ ! -f "${SEARCH_DIRS[1]}/release.md" ]] && [[ "${relTmpl##*/}" == "release.md" ]]; then
+		echo "Creating config file 'release.md' for repository"
+		cp "$CFG_DIR/release.md" "${SEARCH_DIRS[1]}/release.md" || err::exit "Unable to write config file '${SEARCH_DIRS[1]}/release.md'"
+	fi
+	if [[ ! -f "${SEARCH_DIRS[0]}/pull_request.md" ]] && [[ ! -f "${SEARCH_DIRS[1]}/pull_request.md" ]] && [[ "${pullTmpl##*/}" == "pull_request.md" ]]; then
+		echo "Creating config file 'pull_request.md' for repository"
+		cp "$CFG_DIR/pull_request.md" "${SEARCH_DIRS[1]}/pull_request.md" || err::exit "Unable to write config file '${SEARCH_DIRS[1]}/pull_request.md'"
+	fi
 }

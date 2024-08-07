@@ -12,12 +12,13 @@
 # Copyright:    Copyright © 2024 Redeyed Technologies
 ####################################################################
 declare -Ax RESPONSE REPO CFG
-declare -Ax LATEST_RELEASE CURRENT_VERSION
+declare -Ax LATEST_RELEASE CURRENT_VERSION IN_VERSION RELEASE_VERSION
 
-declare -ax HEADERS RELEASES
+declare -ax HEADERS RELEASES BRANCHES
 declare -ax SEARCH_DIRS LOGGED_TYPES
 
 declare -x REPO_NAME REPO_DESC REPO_URL REPO_DEFAULT_BRANCH VERSION
+declare -x BRANCH_SOURCE BRANCH_PATCH BRANCH_PROD BRANCH_STAGE BRANCH_RELEASE BRANCH_CURRENT
 declare -x OWNER_LOGIN OWNER_ID OWNER_LOCATION OWNER_COMPANY OWNER_BLOG OWNER_TWITTER
 
 declare -x FIRST_RELEASE=false
@@ -35,8 +36,9 @@ TMP_DIR="$(mktemp -d)"
 
 HEADERS=("-H \"Accept: application/vnd.github+json\"" "-H \"Authorization: Bearer ${GITHUB_TOKEN}\"" "-H \"X-GitHub-Api-Version: 2022-11-28\"")
 
-declare -x cfgFile cfgBase cfgTypes tmpFile tmpBase
+declare -x cfgFile cfgBase cfgTypes cfgDefault cfgDefaultBase tmpFile tmpBase
 declare -x logFile logTmpl relTmpl pullTmpl
+declare -x releaseTag releaseBranch
 
 
 #declare -Ax LOGGED_COMMITS FILTERED_COMMITS RESPONSE CFG

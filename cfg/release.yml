@@ -22,6 +22,10 @@ authors:
 #     stage:
 #     patch:
 #     release:
+# date_format:
+#     short:
+#     long:
+#     dtg:
 # message:
 #     commit:
 #     release:

@@ -18,6 +18,10 @@ branch:
     stage: develop
     patch: hotfix
     release: release
+date_format:
+    short: "+%d %b %Y"
+    long: "+%a %b %d, %Y %R"
+    dtg: "+%x %X %z%Z"
 message:
     commit: "build(release): Auto commit"
     release: "build(release): Release version"
@@ -33,3 +37,4 @@ pull_request:
     create: true
 standard:
     config: types.conventional.yml
+# logged_types:

@@ -121,22 +121,22 @@ echo "Reading configuration files ..."
 #-------------------------------------------------------------------
 # Check git config
 #-------------------------------------------------------------------
-#echo "Checking Git Config ..."
-#
-#if ! git config --get user.email; then
-#	[[ -z "$GIT_USER_NAME" ]] && err::exit "Git username not configured"
-#	[[ -z "$GIT_USER_EMAIL" ]] && err::exit "No email address configured"
-#	git config --global user.name = "$GIT_USER_NAME"
-#	git config --global user.email = "$GIT_USER_EMAIL"
-#	echo "Git global user configuration set: $GIT_USER_NAME <$GIT_USER_EMAIL>"
-#	git config --global push.autoSetupRemote true
-#	echo "Git global push.autoSetupRemote set: true"
-#fi
+echo "Checking Git Config ..."
+
+if ! git config --get user.email; then
+	[[ -z "${CFG['git_user.name']}" ]] && err::exit "Git username not configured"
+	[[ -z "${CFG['git_user.email']}" ]] && err::exit "Git email address not configured"
+	git config --global user.name = "${CFG['git_user.name']}"
+	git config --global user.email = "${CFG['git_user.email']}"
+	echo "Git global user configuration set: ${CFG['git_user.name']} <${CFG['git_user.email']}>"
+	git config --global push.autoSetupRemote true
+	echo "Git global push.autoSetupRemote set: true"
+fi
 
 #-------------------------------------------------------------------
-# Get input variables
+# Massage input variables
 #-------------------------------------------------------------------
-echo "Get input variables ..."
+echo "Massage input variables ..."
 
 case "$INPUT_TYPE" in
 	auto)
@@ -146,13 +146,13 @@ case "$INPUT_TYPE" in
 		[[ -z "$INPUT_VERSION" ]] && err::exit "Bump Type = 'version', but no release version specified"
 		;;
 	patch)
-		[[ "${LATEST_REPO_TAG['version']}" == "0.0.0" ]] && err::exit "Bump Type = 'patch', but no previous releases"
+		[[ "${LATEST_RELEASE['version']}" == "0.0.0" ]] && err::exit "Bump Type 'patch', but no previous releases"
 		;;
 	minor)
-		[[ "${LATEST_REPO_TAG['version']}" == "0.0.0" ]] && err::exit "Bump Type = 'minor', but no previous releases"
+		[[ "${LATEST_RELEASE['version']}" == "0.0.0" ]] && err::exit "Bump Type 'minor', but no previous releases"
 		;;
 	major)
-		[[ "${LATEST_REPO_TAG['version']}" == "0.0.0" ]] && err::exit "Bump Type = 'major', but no previous releases"
+		[[ "${LATEST_RELEASE['version']}" == "0.0.0" ]] && err::exit "Bump Type 'major', but no previous releases"
 		;;
 	*)
 		err::exit "Invalid Bump Type"
@@ -173,6 +173,10 @@ echo "INPUT_DRAFT = ${INPUT_DRAFT}"
 # Get Branches
 #-------------------------------------------------------------------
 BRANCH_CURRENT="$(git branch --show-current)"
+BRANCH_PROD="${CFG['branch.prod']}"
+BRANCH_STAGE="${CFG['branch.stage']}"
+BRANCH_PATCH="${CFG['branch.patch']}"
+BRANCH_RELEASE="${CFG['branch.release']}"
 
 # Build a list of branches
 while read -r line; do
@@ -192,6 +196,7 @@ else
 fi
 
 arr::hasVal "$BRANCH_SOURCE" "${BRANCHES[@]}" || err::exit "Source branch '$BRANCH_SOURCE' not found"
+
 #-------------------------------------------------------------------
 # Get next release version
 #-------------------------------------------------------------------
@@ -201,12 +206,13 @@ releaseTag="$(rm::getReleaseVersion)"
 
 echo "Release Version: $releaseTag"
 
-rm::parseVersion "$releaseTag" "RELEASE_VERSION"
+rm::parseVersion "$releaseTag" RELEASE_VERSION
 
 CFG['release_version']="${RELEASE_VERSION['full']}"
 CFG['release_url']="https://github.com/$GITHUB_REPOSITORY/releases/tag/${RELEASE_VERSION['full']}"
-CFG['release_date']="$(date '+%d %b %Y')"
-if [[ "$isFirst" ]]; then CFG['release_notes']="First Release"; else CFG['release_notes']="NOTES"; fi
+CFG['release_date']="$(date "${CFG['date_format.short']}")"
+#@TODO release.md template inclusion
+if [[ "$FIRST_RELEASE" ]]; then CFG['release_notes']="_**First Release**_"; else CFG['release_notes']="NOTES"; fi
 
 echo "::endgroup::"
 
@@ -218,7 +224,6 @@ echo "::group::🎁 Processing ..."
 #-------------------------------------------------------------------
 # Check / Checkout branches
 #-------------------------------------------------------------------
-
 echo "Checking out source branch ..."
 
 # Checkout source branch
@@ -236,25 +241,16 @@ releaseBranch="$BRANCH_RELEASE/$releaseTag"
 git checkout -b "$releaseBranch" "$BRANCH_SOURCE" || err::exit "Failed to create requested branch '$releaseBranch'"
 
 #-------------------------------------------------------------------
-# Write config file if required
+# Write config files if required
 #-------------------------------------------------------------------
-if [[ ! -f "$GITHUB_WORKSPACE/.github/.release.yml" ]]; then
-	echo "Creating release manager config file ..."
-	if [[ -f "$TMP_DIR/.release.yml" ]]; then
-		cp "$TMP_DIR/.release.yml" "$GITHUB_WORKSPACE/.github/.release.yml" || err::exit "Unable to copy config file from '$TMP_DIR/.release.yml' to '$GITHUB_WORKSPACE/.github/.release.yml'"
-	else
-		if [[ -f "$cfgDefault" ]]; then
-			envsubst < "$cfgDefault" > "$GITHUB_WORKSPACE/.github/.release.yml" || err::exit "Unable to write config file '$GITHUB_WORKSPACE/.github/.release.yml'"
-		else
-			err::exit "Unable to find default configuration file"
-		fi
-	fi
-fi
+echo "Writing repository configuration files ..."
+
+cfg::write
 
 #-------------------------------------------------------------------
 # Write changelog if required
 #-------------------------------------------------------------------
-if [[ "$CHANGELOG" ]]; then
+if [[ "${CFG['changelog.create']}" ]]; then
 	changelogDot="🟢"
 	bld::changelog
 else
@@ -265,7 +261,7 @@ fi
 # Update release config
 #-------------------------------------------------------------------
 echo "Updating release config file"
-yq -i ".version = \"$releaseTag\"" "$GITHUB_WORKSPACE/.github/.release.yml"
+yq -i ".version = \"$releaseTag\"" "$GITHUB_WORKSPACE/.github/release.yml"
 
 #-------------------------------------------------------------------
 # Add / Commit files

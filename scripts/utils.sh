@@ -45,7 +45,7 @@ rm::getReleaseVersion()
 	case "$INPUT_TYPE" in
 		auto)
 			[[ -n "${CURRENT_VERSION['prefix']}" ]] && p="${CURRENT_VERSION['prefix']}"
-			if [[ "$isFirst" ]]; then
+			if [[ "$FIRST_RELEASE" ]]; then
 				v="${CURRENT_VERSION['version']}"
 			else
 				if [[ -n "${CURRENT_VERSION['suffix']}" ]] && [[ ! $INPUT_PRE_RELEASE ]]; then
