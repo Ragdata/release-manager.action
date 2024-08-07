@@ -46,8 +46,10 @@ commit_types:
       title: Tests
       description: Changes to unit tests or other testing code
       icon: ':rotating_light:'
+# commit_scopes:
 logged_types:
     - feat
     - fix
     - ci
     - docs
+# logged_scopes

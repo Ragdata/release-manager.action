@@ -28,6 +28,7 @@ message:
 changelog:
     template: changelog.md
     file: CHANGELOG.md
+    style: coupled
     create: true
 release:
     template: release.md

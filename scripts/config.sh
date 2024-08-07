@@ -135,6 +135,7 @@ cfg::read()
 	if $(yq 'has("changelog")' "$filePath"); then
 		$(yq '.changelog | has("template")' "$filePath") && { arr['changelog.template']="$(yq '.changelog.template' "$filePath")"; echo "::debug::.changelog.template = ${arr['changelog.template']}"; }
 		$(yq '.changelog | has("file")' "$filePath") && { arr['changelog.file']="$(yq '.changelog.file' "$filePath")"; echo "::debug::.changelog.file = ${arr['changelog.file']}"; }
+		$(yq '.changelog | has("style")' "$filePath") && { arr['changelog.style']="$(yq '.changelog.style' "$filePath")"; echo "::debug::.changelog.style = ${arr['changelog.style']}"; }
 		$(yq '.changelog | has("create")' "$filePath") && { arr['changelog.create']="$(yq '.changelog.create' "$filePath")"; echo "::debug::.changelog.create = ${arr['changelog.create']}"; }
 	fi
 	if $(yq 'has("release")' "$filePath"); then
@@ -152,9 +153,16 @@ cfg::read()
 	if $(yq 'has("commit_types")' "$filePath"); then
 		yq -o=j -I4 '.commit_types' "$filePath" > "$TMP_DIR/commit_types.json"
 	fi
+	if $(yq 'has("commit_scopes")' "$filePath"); then
+		yq -o=j -I4 '.commit_scopes' "$filePath" > "$TMP_DIR/commit_scopes.json"
+	fi
 	if $(yq 'has("logged_types")' "$filePath"); then
 		# shellcheck disable=SC2034
 		readarray LOGGED_TYPES < <(yq '.logged_types[]' "$filePath")
+	fi
+	if $(yq 'has("logged_scopes")' "$filePath"); then
+		# shellcheck disable=SC2034
+		readarray LOGGED_SCOPES < <(yq '.logged_scopes[]' "$filePath")
 	fi
 }
 
