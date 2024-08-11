@@ -1,0 +1,27 @@
+name: Release Manager Action
+description: GitHub Action to tag and release a new version of your project
+author: 'ragdata'
+inputs:
+    version:
+        description: "Release Version"
+        required: false
+    type:
+        description: "Bump Type"
+        required: false
+    branch:
+        description: "Branch to create release from"
+        required: false
+    pre_release:
+        description: "Pre-release?"
+        required: false
+    draft:
+        description: "Draft release?"
+        required: false
+
+runs:
+    using: docker
+    image: Dockerfile
+
+branding:
+    icon: package
+    color: red
