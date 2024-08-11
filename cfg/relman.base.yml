@@ -1,0 +1,50 @@
+# name:
+# description:
+version: v0.1.0
+# copyright:
+# website:
+# repo_url:
+# authors:
+#     - username:
+#       first_name:
+#       surname:
+#       email:
+#       location:
+#       affiliation:
+#       blog:
+#       twitter:
+git_user:
+    name: release-manager[bot]
+    email: ${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com
+branch:
+    prod: ${REPO_DEFAULT_BRANCH}
+    stage: develop
+    patch: hotfix
+    release: release
+date_format:
+    short: "+%d %b %Y"
+    long: "+%a %b %d, %Y"
+    dtg: "+%x %X %z%Z"
+message:
+    commit: "build(release): Auto commit"
+    release: "build(release): Release version"
+changelog:
+    template: changelog.md
+    file: CHANGELOG.md
+    style: per_release
+    create: true
+release:
+    template: release.md
+    create: true
+pull_request:
+    template: pull_request.md
+    create: true
+standard:
+    config: types.conventional.yml
+#    name:
+#    url:
+#    regex:
+# commit_types:
+# commit_scopes:
+# logged_types:
+# logged_scopes:
