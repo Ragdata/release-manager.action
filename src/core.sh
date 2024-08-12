@@ -53,6 +53,62 @@ core::getReleases()
 	fi
 }
 
+core::getReleaseVersion()
+{
+	local p="" v="" s="" b="" d
+
+	$INPUT_PRE_RELEASE && s="-alpha"
+
+	case "$INPUT_TYPE" in
+		auto)
+			[[ -n "${CURRENT_RELEASE['prefix']}" ]] && p="${CURRENT_RELEASE['prefix']}"
+			if [[ "$FIRST_RELEASE" ]]; then
+				v="${CURRENT_RELEASE['version']}"
+			else
+				if [[ -n "${CURRENT_RELEASE['suffix']}" ]] && [[ ! $INPUT_PRE_RELEASE ]]; then
+					v="${CURRENT_RELEASE['version']}"
+				elif [[ "$BRANCH_SOURCE" == "$BRANCH_PATCH/"* ]]; then
+					d="${CURRENT_RELEASE['patch']}"
+					((d+=1))
+					v="${CURRENT_RELEASE['major']}.${CURRENT_RELEASE['minor']}.$d"
+				else
+					d="${CURRENT_RELEASE['minor']}"
+					((d+=1))
+					v="${CURRENT_RELEASE['major']}.$d.0"
+				fi
+			fi
+			;;
+		version)
+			[[ -n "${IN_VERSION['prefix']}" ]] && p="${IN_VERSION['prefix']}"
+			v="${IN_VERSION['version']}"
+			[[ -n "${IN_VERSION['suffix']}" ]] && s="${IN_VERSION['suffix']}"
+			[[ -n "${IN_VERSION['build']}" ]] && b="${IN_VERSION['build']}"
+			;;
+		patch|minor|major)
+			[[ -n "${CURRENT_RELEASE['prefix']}" ]] && p="${CURRENT_RELEASE['prefix']}"
+			case "$INPUT_TYPE" in
+				patch)
+					d="${CURRENT_RELEASE['patch']}"
+					((d+=1))
+					v="${CURRENT_RELEASE['major']}.${CURRENT_RELEASE['minor']}.$d"
+					;;
+				minor)
+					d="${CURRENT_RELEASE['minor']}"
+					((d+=1))
+					v="${CURRENT_RELEASE['major']}.$d.0"
+					;;
+				major)
+					d="${CURRENT_RELEASE['major']}"
+					((d+=1))
+					v="$d.0.0"
+					;;
+			esac
+			;;
+	esac
+
+	echo "$p$v$s$b"
+}
+
 core::getRepository()
 {
 	# shellcheck disable=SC2178

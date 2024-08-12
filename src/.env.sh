@@ -12,7 +12,7 @@
 # Copyright:    Copyright © 2024 Redeyed Technologies
 ####################################################################
 declare -Ax REPO PREV_RELEASE
-declare -Ax CURRENT_RELEASE IN_RELEASE
+declare -Ax CURRENT_RELEASE IN_RELEASE RELEASE_VERSION
 declare -ax HEADERS RELEASES SEARCH_DIRS LOGGED_TYPES LOGGED_SCOPES BRANCHES
 
 declare -x REPO_NAME REPO_DESC COPYRIGHT WEBSITE REPO_URL REPO_DEFAULT_BRANCH
@@ -32,6 +32,7 @@ declare -x TMP_CFG_FILE TMP_CFG_BASE ENV_FILE
 declare -x LOG_FILE TMPL_LOG TMPL_RELEASE TMPL_PULL
 
 declare -x FIRST_RELEASE=false
+declare -x RELEASE_TAG
 
 BIN_DIR="/usr/local/bin"
 SHARE_DIR="/usr/local/share"
