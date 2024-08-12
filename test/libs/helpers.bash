@@ -15,3 +15,5 @@ commonSetup()
 
 assertEmpty() { assert [ -z "${1}" ]; }
 refuteEmpty() { assert [ ! -z "${1}" ]; }
+assertExists() { assert [ -e "${1}" ]; }
+refuteExists() { assert [ ! -e "${1}" ]; }
