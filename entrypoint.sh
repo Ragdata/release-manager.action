@@ -105,7 +105,7 @@ cfg::parse "$CFG_FILE"
 [[ -n "$RELEASE_TEMPLATE" ]] && TMPL_RELEASE="$(cfg::getFile "tmpl/$RELEASE_TEMPLATE" "$RELEASE_TEMPLATE_DEFAULT")"
 [[ -n "$PULL_REQUEST_TEMPLATE" ]] && TMPL_PULL="$(cfg::getFile "tmpl/$PULL_REQUEST_TEMPLATE" "$PULL_REQUEST_TEMPLATE_DEFAULT")"
 #-------------------------------------------------------------------
-# Process Configuration Files
+# Check Git Config
 #-------------------------------------------------------------------
 echo "Checking Git Config"
 

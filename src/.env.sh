@@ -44,9 +44,9 @@ TMP_DIR="$(mktemp -d)"
 
 SEARCH_DIRS=("$GITHUB_WORKSPACE/.github" "$GITHUB_WORKSPACE/.github/release")
 
-CFG_DEFAULT="$CFG_DIR/relman.yml"
-CFG_BASE_DEFAULT="$CFG_DIR/relman.base.yml"
-CFG_TYPES_DEFAULT="$CFG_DIR/types.conventional.yml"
+CFG_DEFAULT="$CFG_DIR/.releaserc"
+CFG_BASE_DEFAULT="$CFG_DIR/.releaserc.base"
+CFG_TYPES_DEFAULT="$CFG_DIR/.releaserc.types.conventional"
 CHANGELOG_TEMPLATE_DEFAULT="$TMPL_DIR/changelog.md"
 RELEASE_TEMPLATE_DEFAULT="$TMPL_DIR/release.md"
 PULL_REQUEST_TEMPLATE_DEFAULT="$TMPL_DIR/pull_request.md"

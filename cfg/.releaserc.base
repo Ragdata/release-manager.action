@@ -40,7 +40,7 @@ pull_request:
     template: pull_request.md
     create: true
 standard:
-    config: types.conventional.yml
+    config: .releaserc.types.conventional
 #    name:
 #    url:
 #    regex:

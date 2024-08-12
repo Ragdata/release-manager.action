@@ -33,7 +33,7 @@ cfg::getPrimary()
 {
 	local extends
 
-	CFG_FILE="$(cfg::getFile relman.yml "$CFG_DEFAULT")"
+	CFG_FILE="$(cfg::getFile .releaserc "$CFG_DEFAULT")"
 
 	[[ "$(yq 'has("extends")' "$CFG_FILE")" ]] && extends="$(yq '.extends' "$CFG_FILE")"
 
@@ -41,14 +41,14 @@ cfg::getPrimary()
 
 	if [[ "$CFG_FILE" == "$CFG_FILE_DEFAULT" ]]; then
 		echo "Creating temporary configuration file"
-		TMP_CFG_FILE="$TMP_DIR/relman.yml"
+		TMP_CFG_FILE="$TMP_DIR/.releaserc"
 		envsubst < "$CFG_FILE" > "$TMP_CFG_FILE" || err::exit "Failed to write temporary config file '$TMP_CFG_FILE'"
 		CFG_FILE="$TMP_CFG_FILE"
 	fi
 
 	if [[ -n "$CFG_BASE" ]] && [[ "$CFG_BASE" == "$CFG_BASE_DEFAULT" ]]; then
 		echo "Creating temporary base configuration file"
-		TMP_CFG_BASE="$TMP_DIR/relman.base.yml"
+		TMP_CFG_BASE="$TMP_DIR/.releaserc.base"
 		envsubst < "$CFG_BASE" > "$TMP_CFG_BASE" || err::exit "Failed to write temporary base config file '$TMP_CFG_BASE'"
 		CFG_BASE="$TMP_CFG_BASE"
 	fi
