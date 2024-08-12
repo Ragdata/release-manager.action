@@ -101,9 +101,9 @@ cfg::getPrimary
 
 cfg::parse "$CFG_FILE"
 
-[[ -n "$CHANGELOG_TEMPLATE" ]] && TMPL_LOG="$(cfg::getFile "$CHANGELOG_TEMPLATE" "$CHANGELOG_TEMPLATE_DEFAULT")"
-[[ -n "$RELEASE_TEMPLATE" ]] && TMPL_RELEASE="$(cfg::getFile "$RELEASE_TEMPLATE" "$RELEASE_TEMPLATE_DEFAULT")"
-[[ -n "$PULL_REQUEST_TEMPLATE" ]] && TMPL_PULL="$(cfg::getFile "$PULL_REQUEST_TEMPLATE" "$PULL_REQUEST_TEMPLATE_DEFAULT")"
+[[ -n "$CHANGELOG_TEMPLATE" ]] && TMPL_LOG="$(cfg::getFile "tmpl/$CHANGELOG_TEMPLATE" "$CHANGELOG_TEMPLATE_DEFAULT")"
+[[ -n "$RELEASE_TEMPLATE" ]] && TMPL_RELEASE="$(cfg::getFile "tmpl/$RELEASE_TEMPLATE" "$RELEASE_TEMPLATE_DEFAULT")"
+[[ -n "$PULL_REQUEST_TEMPLATE" ]] && TMPL_PULL="$(cfg::getFile "tmpl/$PULL_REQUEST_TEMPLATE" "$PULL_REQUEST_TEMPLATE_DEFAULT")"
 #-------------------------------------------------------------------
 # Process Configuration Files
 #-------------------------------------------------------------------
@@ -180,5 +180,12 @@ arr::hasVal "$BRANCH_SOURCE" "${BRANCHES[@]}" || err::exit "Source branch '$BRAN
 #-------------------------------------------------------------------
 # Get this release version
 #-------------------------------------------------------------------
+echo "Get release version"
+
+RELEASE_TAG="$(core::getReleaseVersion)"
+
+echo "Release Version: $RELEASE_TAG"
+
+core::parseVersion "$RELEASE_TAG" RELEASE_VERSION
 
 echo "::endgroup::"
